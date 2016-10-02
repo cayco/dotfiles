@@ -64,6 +64,7 @@ endif
 " Plug
 "
 call plug#begin('~/.vim/plugged')
+Plug 'https://github.com/vim-scripts/YankRing.vim'
 Plug 'honza/vim-snippets'
 Plug 'kana/vim-textobj-user'
 Plug 'sudar/vim-arduino-snippets'
@@ -256,3 +257,8 @@ vmap <Leader><Bar> :EasyAlign*<Bar><Enter>
 
 " Fix EasyAlign and Explore ambigous E command
 cabbrev E Explore
+
+" YankRing configuraction
+let g:yankring_history_file = '.yankring-history'
+nnoremap ,yr :YRShow<CR>
+nnoremap C-y :YRShow<CR>
