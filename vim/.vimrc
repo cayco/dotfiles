@@ -64,6 +64,14 @@ endif
 " Plug
 "
 call plug#begin('~/.vim/plugged')
+Plug 'cyberkov/openhab-vim'
+Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
+Plug 'tbabej/taskwiki'
+Plug 'powerman/vim-plugin-AnsiEsc'
+Plug 'majutsushi/tagbar'
+Plug 'farseer90718/vim-taskwarrior'
+Plug 'scrooloose/syntastic'
+Plug 'glts/vim-textobj-comment'
 Plug 'https://github.com/vim-scripts/YankRing.vim'
 Plug 'honza/vim-snippets'
 Plug 'kana/vim-textobj-user'
@@ -77,16 +85,16 @@ Plug 'kana/vim-textobj-user'
 Plug 'sts10/vim-mustard'
 Plug 'https://github.com/terryma/vim-smooth-scroll.git'
 Plug 'tpope/vim-speeddating'
-Plug 'junegunn/goyo.vim'
+"Plug 'junegunn/goyo.vim'
 Plug 'junegunn/vim-easy-align'
 Plug 'mattn/calendar-vim'
-Plug 'amix/vim-zenroom2'
+"Plug 'amix/vim-zenroom2'
 Plug 'https://github.com/fmoralesc/vim-pad.git'
 Plug 'https://github.com/cwoac/nvim.git'
 Plug 'godlygeek/tabular'
 Plug 'https://github.com/plasticboy/vim-markdown.git'
 Plug 'https://github.com/tomtom/tcomment_vim.git'
-Plug 'https://github.com/jceb/vim-orgmode'
+"Plug 'https://github.com/jceb/vim-orgmode'
 Plug 'https://github.com/lifepillar/vim-cheat40.git'
 Plug 'reedes/vim-pencil'
 Plug 'godlygeek/tabular'
@@ -99,7 +107,15 @@ Plug 'https://github.com/justinmk/vim-sneak.git'
 Plug 'https://github.com/tpope/vim-fugitive.git'
 Plug 'https://github.com/Raimondi/delimitMate.git'
 Plug 'https://github.com/terryma/vim-multiple-cursors.git'
-Plug 'vimoutliner/vimoutliner/'
+"Plug 'vimoutliner/vimoutliner/'
+Plug 'thinca/vim-textobj-between'
+Plug 'Julian/vim-textobj-brace'
+Plug 'https://github.com/glts/vim-textobj-indblock'
+Plug 'vim-scripts/DrawIt'
+" wywołuje ArduinoIDE 
+Plug '4Evergreen4/vim-hardy'
+Plug 'jplaut/vim-arduino-ino'
+Plug 'Valloric/YouCompleteMe'
 
 " Add plugins to &runtimepath
 call plug#end()
@@ -125,7 +141,7 @@ autocmd BufRead,BufNewFile *.txt set filetype=org
 " autocm VimEnter *.mk Goyo
 
 " Vim outline
-au! BufRead,BufNewFile *.otl setfiletype votl
+"au! BufRead,BufNewFile *.otl setfiletype votl
 
 augroup pencil
   autocmd!
@@ -174,7 +190,7 @@ set ttyfast
 " " Add the g flag to search/replace by default
 set gdefault
 
- let g:org_indent = 1
+"let g:org_indent = 1
 
 " do not use default cheat sheet 
  let g:cheat40_use_default = 0
@@ -245,7 +261,11 @@ vmap X "_d
 " Insert newline in Normal Mode. You can p line then.
 nmap <CR> o<Esc>j
 
+"Airline config
+"turn on nice fonts in status line
 let g:airline_powerline_fonts = 1
+"enable syntastic integration
+let g:airline#extensions#syntastic#enabled = 1
 
 " UltiSnip conf for TAB
 let g:UltiSnipsExpandTrigger="<tab>"
@@ -262,3 +282,37 @@ cabbrev E Explore
 let g:yankring_history_file = '.yankring-history'
 nnoremap ,yr :YRShow<CR>
 nnoremap C-y :YRShow<CR>
+
+autocmd FileType rules setlocal commentstring=/*\ %s\ */
+
+"Syntastic config
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+" ARduino
+"nnoremap <leader>ad :call ArduinoUpload()<CR>
+
+" disable YouCompleteMe engine for some files
+let g:ycm_filetype_blacklist= {
+      \ 'gitcommit': 1,
+      \ 'markdown': 1,
+      \ 'text': 1,
+      \ 'org': 1
+      \}
+
+" Syntastic configuration
+let g:syntastic_text_checkers = ['language_check']
+let g:syntastic_text_language_check_args = '--language=pl-PL'
+let g:syntastic_org_checkers = ['language_check']
+let g:syntastic_org_language_check_args = '--language=pl-PL'
+let g:syntastic_html_checkers = ['tidy']
+let g:syntastic_markdown_checkers = ['mdl']
+let g:syntastic_arduino_checkers = ['avrgcc']
+
+" Allow saving of files as sudo when I forgot to start vim using sudo.
+cmap w!! w !sudo tee > /dev/null %
+
+nmap <F8> :TagbarToggle<CR>
+
