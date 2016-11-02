@@ -65,8 +65,9 @@ endif
 "
 call plug#begin('~/.vim/plugged')
 Plug 'cyberkov/openhab-vim'
+Plug 'Valloric/MatchTagAlways'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
-Plug 'tbabej/taskwiki'
+"Plug 'tbabej/taskwiki'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'majutsushi/tagbar'
 Plug 'farseer90718/vim-taskwarrior'
@@ -116,6 +117,7 @@ Plug 'vim-scripts/DrawIt'
 Plug '4Evergreen4/vim-hardy'
 Plug 'jplaut/vim-arduino-ino'
 Plug 'Valloric/YouCompleteMe'
+"Plug 'weynhamz/vim-plugin-minibufexpl'
 
 " Add plugins to &runtimepath
 call plug#end()
@@ -133,7 +135,7 @@ set undofile
 set undodir     =$HOME/.vim/files/undo/
 set viminfo     ='100,n$HOME/.vim/files/info/viminfo
 
-autocmd BufRead,BufNewFile *.txt set filetype=org
+autocmd BufRead,BufNewFile *.txt set filetype=markdown
 
 " markdown
 " au! BufRead,BufNewFile *.markdown set filetype=mkd
@@ -278,6 +280,15 @@ vmap <Leader><Bar> :EasyAlign*<Bar><Enter>
 " Fix EasyAlign and Explore ambigous E command
 cabbrev E Explore
 
+" Start interactive EasyAlign in visual mode (e.g. vipga)
+xmap ga <Plug>(EasyAlign)
+
+" Start interactive EasyAlign for a motion/text object (e.g. gaip)
+nmap ga <Plug>(EasyAlign)
+
+let g:easy_align_delimiters = {
+\ 't': { 'pattern': "\<tab>", 'left_margin': 0, 'right_margin': 0 } }
+
 " YankRing configuraction
 let g:yankring_history_file = '.yankring-history'
 nnoremap ,yr :YRShow<CR>
@@ -286,10 +297,10 @@ nnoremap C-y :YRShow<CR>
 autocmd FileType rules setlocal commentstring=/*\ %s\ */
 
 "Syntastic config
-let g:syntastic_always_populate_loc_list = 1
-let g:syntastic_auto_loc_list = 1
-let g:syntastic_check_on_open = 1
-let g:syntastic_check_on_wq = 0
+"let g:syntastic_always_populate_loc_list = 1
+"let g:syntastic_auto_loc_list = 1
+"let g:syntastic_check_on_open = 1
+"let g:syntastic_check_on_wq = 0
 
 " ARduino
 "nnoremap <leader>ad :call ArduinoUpload()<CR>
@@ -307,12 +318,55 @@ let g:syntastic_text_checkers = ['language_check']
 let g:syntastic_text_language_check_args = '--language=pl-PL'
 let g:syntastic_org_checkers = ['language_check']
 let g:syntastic_org_language_check_args = '--language=pl-PL'
-let g:syntastic_html_checkers = ['tidy']
+"let g:syntastic_html_checkers = ['tidy']
 let g:syntastic_markdown_checkers = ['mdl']
 let g:syntastic_arduino_checkers = ['avrgcc']
+let g:syntastic_disabled_filetypes=['html']
 
 " Allow saving of files as sudo when I forgot to start vim using sudo.
 cmap w!! w !sudo tee > /dev/null %
 
 nmap <F8> :TagbarToggle<CR>
+let g:netrw_banner = 0
+let g:netrw_liststyle = 3
+let g:netrw_browse_split = 4
+let g:netrw_altv = 1
+let g:netrw_winsize = 25
+
+
+" automatically reload vimrc when it's saved
+au BufWritePost .vimrc so ~/.vimrc
+
+" ctrl-w then j, it’s just ctrl-j:
+nnoremap <C-J> <C-W><C-J>
+nnoremap <C-K> <C-W><C-K>
+nnoremap <C-L> <C-W><C-L>
+nnoremap <C-H> <C-W><C-H>
+set splitbelow
+set splitright
+nnoremap / /\v
+vnoremap / /\v
+
+set gdefault
+set list
+set listchars=tab:▸\ ,eol:¬
+
+" Autosave on lost focus
+au FocusLost * :wa
+
+" jj to enter Normal mode
+inoremap jj <ESC>
+
+set iskeyword-=\.
+set iskeyword-=\(
+set iskeyword-=\)
+
+"Easy split navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+
+let wiki_1 = {}
+let wiki_1.path = '~/vimwiki/'
 
