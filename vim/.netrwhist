@@ -1,8 +1,10 @@
 let g:netrw_dirhistmax  =10
-let g:netrw_dirhist_cnt =6
-let g:netrw_dirhist_1='/Volumes/openHAB-conf-1/things'
-let g:netrw_dirhist_2='/Volumes/openHAB-conf-1'
-let g:netrw_dirhist_3='/Volumes/openHAB-conf-1/items'
-let g:netrw_dirhist_4='/Users/cayco/.vim/plugged/vim-pad'
-let g:netrw_dirhist_5='/Users/cayco/Documents'
-let g:netrw_dirhist_6='/Users/cayco/dotfiles/.git'
+let g:netrw_dirhist_cnt =8
+let g:netrw_dirhist_1='/Volumes/Badanie LUX MED'
+let g:netrw_dirhist_2='/Volumes/Badanie LUX MED/CDViewer'
+let g:netrw_dirhist_3='/Volumes/Badanie LUX MED'
+let g:netrw_dirhist_4='/Volumes/Badanie LUX MED/weasis'
+let g:netrw_dirhist_5='/Volumes/Badanie LUX MED/weasis/resources'
+let g:netrw_dirhist_6='/Volumes/Badanie LUX MED/weasis/conf'
+let g:netrw_dirhist_7='/Volumes/Badanie LUX MED/weasis/bundle'
+let g:netrw_dirhist_8='/'

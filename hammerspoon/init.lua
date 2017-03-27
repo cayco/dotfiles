@@ -399,7 +399,20 @@ function config()
     local win = hs.window.focusedWindow()
     win:up()
   end)
-    
+-- VIM keys in all apps
+--
+hs.hotkey.bind({"ctrl"}, "j", function()
+  hs.eventtap.keyStroke({""}, "down")
+end)
+hs.hotkey.bind({"ctrl"}, "h", function()
+  hs.eventtap.keyStroke({""}, "left")
+end)
+hs.hotkey.bind({"ctrl"}, "k", function()
+  hs.eventtap.keyStroke({""}, "up")
+end)
+hs.hotkey.bind({"ctrl"}, "l", function()
+  hs.eventtap.keyStroke({""}, "right")
+end)
 --[[
   hs.hotkey.bind(cmd_alt, "c", function()
     local win = hs.window.focusedWindow()

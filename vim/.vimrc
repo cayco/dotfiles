@@ -7,11 +7,7 @@
 
 " vim-plug (https://github.com/junegunn/vim-plug) settings 
 " Automatically install vim-plug and run PlugInstall if vim-plug not found
-if empty(glob('~/.vim/autoload/plug.vim'))
-  silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-    \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-  autocmd VimEnter * PlugInstall | source $MYVIMRC
-endif
+
 set nocompatible
 scriptencoding utf-8
 filetype plugin indent on  " Load plugins according to detected filetype.
@@ -65,13 +61,15 @@ endif
 "
 call plug#begin('~/.vim/plugged')
 Plug 'cyberkov/openhab-vim'
+Plug 'https://github.com/morhetz/gruvbox'
 Plug 'Valloric/MatchTagAlways'
 Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
-"Plug 'tbabej/taskwiki'
+Plug 'tbabej/taskwiki'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'majutsushi/tagbar'
 Plug 'farseer90718/vim-taskwarrior'
 Plug 'scrooloose/syntastic'
+Plug 'whatyouhide/vim-textobj-xmlattr'
 Plug 'glts/vim-textobj-comment'
 Plug 'https://github.com/vim-scripts/YankRing.vim'
 Plug 'honza/vim-snippets'
@@ -116,7 +114,7 @@ Plug 'vim-scripts/DrawIt'
 " wywołuje ArduinoIDE 
 Plug '4Evergreen4/vim-hardy'
 Plug 'jplaut/vim-arduino-ino'
-Plug 'Valloric/YouCompleteMe'
+"Plug 'Valloric/YouCompleteMe'
 "Plug 'weynhamz/vim-plugin-minibufexpl'
 
 " Add plugins to &runtimepath
@@ -226,7 +224,8 @@ let g:ctrlp_working_path_mode = 0
 let g:ctrlp_dotfiles = 0
 let g:ctrlp_switch_buffer = 0
 
-colors zenburn
+colors gruvbox
+set background=dark 
 
 " Powerline
 " python from powerline.vim import setup as powerline_setup
@@ -281,6 +280,7 @@ vmap <Leader><Bar> :EasyAlign*<Bar><Enter>
 cabbrev E Explore
 
 " Start interactive EasyAlign in visual mode (e.g. vipga)
+
 xmap ga <Plug>(EasyAlign)
 
 " Start interactive EasyAlign for a motion/text object (e.g. gaip)
@@ -310,6 +310,7 @@ let g:ycm_filetype_blacklist= {
       \ 'gitcommit': 1,
       \ 'markdown': 1,
       \ 'text': 1,
+      \ 'html': 1,
       \ 'org': 1
       \}
 
