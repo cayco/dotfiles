@@ -368,6 +368,7 @@ end)
 
 -- }}}1
 
+
 hs.window.filter.new('MacVim')-- {{{1
     :subscribe(hs.window.filter.windowFocused,function()
         normal:exit()
@@ -377,7 +378,7 @@ hs.window.filter.new('MacVim')-- {{{1
         enterNormal:enable()
     end)-- }}}1
 
-hs.window.filter.new('Terminal')-- {{{1
+hs.window.filter.new{'Terminal','iTerm2','iTerm'}-- {{{1
     :subscribe(hs.window.filter.windowFocused,function()
         normal:exit()
         enterNormal:disable()
@@ -1206,13 +1207,13 @@ function hs.window.fullscreenWidth(win)
 end
 
 function applicationWatcher(appName, eventType, appObject)
-  if (eventType == hs.application.watcher.activated) then
-    if (appName == "iTerm") then
-        appObject:selectMenuItem({"Window", "Bring All to Front"})
-    elseif (appName == "Finder") then
-        appObject:selectMenuItem({"Window", "Bring All to Front"})
-    end
-  end
+--  if (eventType == hs.application.watcher.activated) then
+--    if (appName == "iTerm") then
+--        appObject:selectMenuItem({"Window", "Bring All to Front"})
+--    elseif (appName == "Finder") then
+--        appObject:selectMenuItem({"Window", "Bring All to Front"})
+--    end
+--  end
 
   if (eventType == hs.application.watcher.launched) then
     os.execute("sleep " .. tonumber(3))
