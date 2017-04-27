@@ -53,6 +53,7 @@ endif
 
 " The fish shell is not very compatible to other shells and unexpectedly
 " breaks things that use 'shell'.
+
 if &shell =~# 'fish$'
   set shell=/bin/bash
 endif
@@ -60,6 +61,7 @@ endif
 " Plug
 "
 call plug#begin('~/.vim/plugged')
+Plug 'christoomey/vim-tmux-navigator'
 Plug 'cyberkov/openhab-vim'
 Plug 'https://github.com/morhetz/gruvbox'
 Plug 'Valloric/MatchTagAlways'
@@ -338,11 +340,11 @@ let g:netrw_winsize = 25
 " automatically reload vimrc when it's saved
 au BufWritePost .vimrc so ~/.vimrc
 
-" ctrl-w then j, it’s just ctrl-j:
-nnoremap <C-J> <C-W><C-J>
-nnoremap <C-K> <C-W><C-K>
-nnoremap <C-L> <C-W><C-L>
-nnoremap <C-H> <C-W><C-H>
+"" ctrl-w then j, it’s just ctrl-j:
+"nnoremap <C-J> <C-W><C-J>
+"nnoremap <C-K> <C-W><C-K>
+"nnoremap <C-L> <C-W><C-L>
+"nnoremap <C-H> <C-W><C-H>
 set splitbelow
 set splitright
 nnoremap / /\v
@@ -363,10 +365,10 @@ set iskeyword-=\(
 set iskeyword-=\)
 
 "Easy split navigation
-nnoremap <C-h> <C-w>h
-nnoremap <C-j> <C-w>j
-nnoremap <C-k> <C-w>k
-nnoremap <C-l> <C-w>l
+"nnoremap <C-h> <C-w>h
+"nnoremap <C-j> <C-w>j
+"nnoremap <C-k> <C-w>k
+"nnoremap <C-l> <C-w>l
 
 let wiki_1 = {}
 let wiki_1.path = '~/vimwiki/'
