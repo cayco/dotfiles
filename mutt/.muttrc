@@ -6,9 +6,7 @@ set sendmail = "muttdown -c /Users/cayco/.muttdown.yaml"
 set sendmail_wait = 0
 set realname = "Krzysztof Kajkowski"
 set imap_user = "krzysztof.kajkowski@gmail.com"
-set imap_pass = "pprescptjiwskptc"
-#set smtp_url = "smtp://krzysztof.kajkowski@gmail.com@smtp.gmail.com:587"
-#set smtp_pass = "pprescptjiwskptc"
+set imap_pass = "`security find-internet-password -w -a krzysztof.kajkowski@gmail.com`"
  
 set smtp_authenticators = 'login'
 
