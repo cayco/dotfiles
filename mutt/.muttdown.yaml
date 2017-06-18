@@ -1,0 +1,6 @@
+smtp_host: smtp.gmail.com
+smtp_port: 587
+smtp_ssl: false
+smtp_username: krzysztof.kajkowski@gmail.com
+smtp_password_command: security find-internet-password -w -a krzysztof.kajkowski@gmail.com
+
