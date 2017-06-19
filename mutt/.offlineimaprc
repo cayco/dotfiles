@@ -1,6 +1,6 @@
 [general]
 ui = TTY.TTYUI
-accounts = cayco
+accounts = cayco, codilime
 pythonfile=~/.mutt/offlineimap.py
 fsync = False
 
@@ -36,3 +36,39 @@ folderfilter = lambda folder: folder not in ['[Gmail]/Trash',
                                              '[Gmail]/Important',
                                              '[Gmail]/Spam',
                                              ]
+[Account codilime]
+localrepository = codilime-Local
+remoterepository = codilime-Remote
+postsynchook = notmuch new
+
+[Repository codilime-Local]
+type = Maildir
+localfolders = ~/.mail/codilime
+nametrans = lambda folder: {'drafts':  '[Gmail]/Drafts',
+                            'sent':    '[Gmail]/Sent Mail',
+                            'flagged': '[Gmail]/Starred',
+                            'grapes': '[Gmail]/Grapes',
+                            'inne': '[Gmail]/Inne',
+                            'trash':   '[Gmail]/Trash',
+                            'archive': '[Gmail]/All Mail',
+                            }.get(folder, folder)
+
+[Repository codilime-Remote]
+maxconnections = 1
+type = Gmail
+remoteuser = krzysztof.kajkowski@codilime.com
+remotepasseval = get_keychain_pass(account="krzysztof.kajkowski@codilime.com", server="imap.gmail.com")
+realdelete = no
+sslcacertfile = /etc/ssl/cert.pem
+nametrans = lambda folder: {'[Gmail]/Drafts':    'drafts',
+                            '[Gmail]/Sent Mail': 'sent',
+                            '[Gmail]/Starred':   'flagged',
+                            '[Gmail]/Grapes':   'grapes',
+                            '[Gmail]/Inne':   'inne',
+                            '[Gmail]/Trash':     'trash',
+                            '[Gmail]/All Mail':  'archive',
+                            }.get(folder, folder)
+folderfilter = lambda folder: folder not in ['[Gmail]/Trash',
+                                             '[Gmail]/Important',
+                                             '[Gmail]/Spam',
+                                             ]                                            
