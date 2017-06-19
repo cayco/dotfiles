@@ -1,25 +1,36 @@
-#account settings
-set from="krzysztof.kajkowski@gmail.com"
-#set sendmail = "/usr/local/bin/msmtp -a krzysztof.kajkowski@gmail.com"
-set sendmail = "muttdown -c /Users/cayco/.muttdown.yaml" 
+# Account Settings -----------------------------------
 
+## SMTP
+set from="krzysztof.kajkowski@gmail.com"
+set sendmail = "muttdown -c /Users/cayco/.muttdown.yaml" 
 set sendmail_wait = 0
 set realname = "Krzysztof Kajkowski"
-set imap_user = "krzysztof.kajkowski@gmail.com"
-set imap_pass = "`security find-internet-password -w -a krzysztof.kajkowski@gmail.com`"
- 
 set smtp_authenticators = 'login'
 
-set folder = "imaps://imap.gmail.com:993"
-set spoolfile = "+INBOX"
-set postponed = "+[Gmail]/Drafts"
-set mbox = "+archive"
-set trash = "imaps://imap.gmail.com/[Gmail Mail]/Trash"
-set record = "+[Gmail]/Sent Mail"
+## IMAP
+set folder = ~/.mail 
 set header_cache = ~/.mutt/cache/headers
 set message_cachedir = ~/.mutt/cache/bodies
-# set certificate_file =~/.mutt/certificates
- 
+set mbox_type = Maildir  # mailbox type
+set spoolfile = "+cayco/INBOX"
+alternates cayco@cayco.pl krzysztof.kajkowski@gmail.com
+mailboxes +cayco/INBOX \
+          +cayco/archive \
+          +temporary/search \
+          +cayco/sent \
+          +cayco/drafts \
+
+set mbox      = "+cayco/archive"
+set postponed = "+cayco/drafts"
+
+macro index ga       "<change-folder>=cayco/archive<enter>" "Go to all mail"
+macro index gd       "<change-folder>=cayco/drafts<enter>" "Go to drafts"
+macro index,pager e  "<save-message>=cayco/archive<enter><enter>" "Archive"
+macro index,pager gi "<change-folder>\Cu=cayco/INBOX<enter>" "go to inbox"
+macro index,pager gs "<change-folder>\Cu=cayco/sent<enter>" "go to starred"
+
+# Sane defaults
+
 set move = no  #Stop asking to "move read messages to mbox"!
 set imap_keepalive = 900
 
@@ -28,6 +39,12 @@ ignore "Authentication-Results:"
 ignore "DomainKey-Signature:"
 ignore "DKIM-Signature:"
 hdr_order Date From To Cc
+
+#muttqt - contact search
+#set query_command="/usr/local/bin/muttqt -q '%s'"
+set query_command = "contacts -Sf '%eTOKEN%n' '%s' 2>&1 | grep -v CoreData | sed -e 's/TOKEN/\t/g'"
+
+bind editor <Tab> complete-query
 
 # Vew URLs
 macro pager \Cu "|urlview<enter>" "call urlview to open links"
@@ -38,7 +55,6 @@ set envelope_from                    # which from?
 set sig_dashes                       # dashes before sig
 set edit_headers                     # show headers when composing
 set fast_reply                       # skip to compose when replying
-set askcc                            # ask for CC:
 set fcc_attach                       # save attachments with the body
 unset mime_forward                   # forward attachments as part of body
 set forward_format = "Fwd: %s"       # format of subject when forwarding
@@ -62,12 +78,17 @@ set sort = 'threads'
 set sort_aux = 'last-date-received'
  
 # Set which Editor to use for composing Emails.
-set editor = "vim +/^$ ++1 -c 'set syntax=mail fo+=w expandtab nosmartindent spell'""
-
+set editor = "vim +/^$ ++1 -c 'set syntax=mail tw=72 fo+=w expandtab nosmartindent spell'""
 set text_flowed
 
-macro index S ":toggle pgp_verify_sig<enter>"
-macro index A ":toggle pgp_autosign<enter>"
+# Vew URLs
+macro pager \Cu "|urlview<enter>" "call urlview to open links"
+auto_view text/html 
+alternative_order text/plain text/enriched text/html
+
+# Bindings for macros
+# space bug - escape
+bind editor <space> noop
 bind index,pager c mail
 bind index,pager a group-reply
 bind index,pager s flag-message
@@ -75,20 +96,11 @@ bind index,pager F noop
 macro index,pager m "<save-message>?" "move a message to a mailbox"
 macro index I "<tag-prefix><clear-flag>N" "mark tagged messages as read"
 macro index \CU "<untag-pattern>~A<enter>"
-macro index ga "<change-folder>=[Gmail]/All Mail<enter>" "Go to all mail"
-macro index gd "<change-folder>=[Gmail]/Drafts<enter>" "Go to drafts"
-macro index,pager y "<save-message>=[Gmail]/All Mail<enter><enter>" "Archive"
-macro index,pager gi "<change-folder>\Cu=INBOX<enter>" "go to inbox"
-macro index,pager gs "<change-folder>\Cu=[Gmail].Starred<enter>" "go to starred"
 macro index,pager gl "<change-folder>\Cu=" "open folder"
 macro index,pager G "<change-folder>?" "browse folder"
 
-bind index - collapse-thread
-bind index _ collapse-all
-
-macro index g/ \
-    "<enter-command>unset wait_key<enter><shell-escape>~/bin/mutt-notmuch --prompt search<enter><change-folder-readonly>~/.cache/mutt_results<enter>" \
-    "search mail (using notmuch)"
+#Notmuch
+macro index S "<enter-command>unset wait_key<enter><shell-escape>~/mutt-notmuch-py ~/.mail/temporary/search<enter><change-folder-readonly>+temporary/search<enter>" "search mail (using notmuch)"
 
 macro compose \e5 "F pandoc -s -f markdown -t html \ny^T^Utext/html; charset=UTF-8\n" 
 set wait_key=no
@@ -98,7 +110,6 @@ set wait_key=no
 bind index gg       first-entry
 bind index G        last-entry
 
-bind index R        group-reply
 bind index <tab>    sync-mailbox
 bind index <space>  collapse-thread
 
@@ -108,6 +119,11 @@ macro index \Cr "T~U<enter><tag-prefix><clear-flag>N<untag-pattern>.<enter>" "ma
 # Saner copy/move dialogs
 macro index C "<copy-message>?<toggle-mailboxes>" "copy a message to a mailbox"
 macro index M "<save-message>?<toggle-mailboxes>" "move a message to a mailbox"# Index View Options ---------------------------------
+
+# Sync email
+macro index O "<shell-escape>offlineimap<enter>"           "run offlineimap to sync all mail"
+macro index o "<shell-escape>offlineimap -qf INBOX<enter>" "run offlineimap to sync inbox"
+
 set date_format = "%m/%d"
 set index_format = "[%Z]  %D  %-20.20F  %s"
 set sort = threads                         # like gmail
@@ -131,7 +147,7 @@ set status_format = "───[ Folder: %f ]───[%r%m messages%?n? (%n new)
 color sidebar_new color221 color233
 # which mailboxes to list in the sidebar,
 # you can add your Labels in Gmail to the Sidebar.
-mailboxes =All Mail =Archive =INBOX =Drafts =Sent Mail  =Trash
+#mailboxes =INBOX cayco/Wysłane cayco/Wszystkie 
  
 # color of folders with new mail
 color sidebar_new yellow default
