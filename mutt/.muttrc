@@ -66,7 +66,7 @@ set sort = 'threads'
 set sort_aux = 'last-date-received'
  
 # Set which Editor to use for composing Emails.
-set editor = "vim +/^$ ++1 -c 'set syntax=mail tw=72 fo+=w expandtab nosmartindent spell'""
+set editor = "vim +/^$ -c 'set syntax=mail tw=72 fo+=w expandtab nosmartindent spell'""
 set text_flowed
 
 # Vew URLs
@@ -90,6 +90,7 @@ macro index,pager G "<change-folder>?" "browse folder"
 #Notmuch
 macro index S "<enter-command>unset wait_key<enter><shell-escape>~/mutt-notmuch-py ~/.mail/temporary/search<enter><change-folder-readonly>+temporary/search<enter>" "search mail (using notmuch)"
 
+#Convert just written mail from Mardown to HTML
 macro compose \e5 "F pandoc -s -f markdown -t html \ny^T^Utext/html; charset=UTF-8\n" 
 set wait_key=no
 
