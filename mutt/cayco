@@ -1,0 +1,30 @@
+# Account Settings -----------------------------------
+
+## SMTP
+set from="krzysztof.kajkowski@gmail.com"
+set sendmail = "msmtp -a cayco"
+#set sendmail = "muttdown -c /Users/cayco/.muttdown.yaml" 
+set realname = "Krzysztof Kajkowski"
+#set smtp_authenticators = 'login'
+
+## IMAP
+alternates cayco@cayco.pl krzysztof.kajkowski@gmail.com
+mailboxes +cayco/INBOX \
+          +cayco/archive \
+          +temporary/search \
+          +cayco/sent \
+          +cayco/drafts \
+
+set mbox      = "+cayco/archive"
+set postponed = "+cayco/drafts"
+
+set signature="~/.mutt/cayco_sig"
+
+macro index ga       "<change-folder>=cayco/archive<enter>" "Go to all mail"
+macro index gd       "<change-folder>=cayco/drafts<enter>" "Go to drafts"
+macro index,pager e  "<save-message>=cayco/archive<enter><enter>" "Archive"
+macro index,pager gi "<change-folder>\Cu=cayco/INBOX<enter>" "go to inbox"
+macro index,pager gs "<change-folder>\Cu=cayco/sent<enter>" "go to starred"
+
+color status cyan default
+# vi:syntax=muttrc

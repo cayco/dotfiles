@@ -1,36 +1,24 @@
-# Account Settings -----------------------------------
-
-## SMTP
-set from="krzysztof.kajkowski@gmail.com"
-set sendmail = "muttdown -c /Users/cayco/.muttdown.yaml" 
-set sendmail_wait = 0
-set realname = "Krzysztof Kajkowski"
-set smtp_authenticators = 'login'
-
-## IMAP
+# Init mail configuration
 set folder = ~/.mail 
 set header_cache = ~/.mutt/cache/headers
 set message_cachedir = ~/.mutt/cache/bodies
 set mbox_type = Maildir  # mailbox type
+
+#source default (cayco) account settings
+source ~/.mutt/cayco
 set spoolfile = "+cayco/INBOX"
-alternates cayco@cayco.pl krzysztof.kajkowski@gmail.com
-mailboxes +cayco/INBOX \
-          +cayco/archive \
-          +temporary/search \
-          +cayco/sent \
-          +cayco/drafts \
 
-set mbox      = "+cayco/archive"
-set postponed = "+cayco/drafts"
+#Handle folder changes
+folder-hook cayco/* source ~/.mutt/cayco
+folder-hook codilime/*     source ~/.mutt/codilime
 
-macro index ga       "<change-folder>=cayco/archive<enter>" "Go to all mail"
-macro index gd       "<change-folder>=cayco/drafts<enter>" "Go to drafts"
-macro index,pager e  "<save-message>=cayco/archive<enter><enter>" "Archive"
-macro index,pager gi "<change-folder>\Cu=cayco/INBOX<enter>" "go to inbox"
-macro index,pager gs "<change-folder>\Cu=cayco/sent<enter>" "go to starred"
+# which mailboxes to list in the sidebar,
+mailboxes = +codilime/INBOX 
+
 
 # Sane defaults
 
+set sendmail_wait = 0
 set move = no  #Stop asking to "move read messages to mbox"!
 set imap_keepalive = 900
 
@@ -145,9 +133,6 @@ set sidebar_sort=no
 set status_chars  = " *%A"
 set status_format = "───[ Folder: %f ]───[%r%m messages%?n? (%n new)?%?d? (%d to delete)?%?t? (%t tagged)? ]───%>─%?p?( %p postponed )?───"
 color sidebar_new color221 color233
-# which mailboxes to list in the sidebar,
-# you can add your Labels in Gmail to the Sidebar.
-#mailboxes =INBOX cayco/Wysłane cayco/Wszystkie 
  
 # color of folders with new mail
 color sidebar_new yellow default

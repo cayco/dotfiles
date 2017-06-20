@@ -1,0 +1,33 @@
+# Account Settings -----------------------------------
+
+## SMTP
+set from="krzysztof.kajkowski@codilime.com"
+set sendmail = "msmtp -a codilime"
+set realname = "Krzysztof Kajkowski"
+
+## IMAP
+alternates codilime@codilime.pl
+mailboxes +codilime/INBOX \
+          +codilime/archive \
+          +codilime/grapes\
+          +codilime/inne\
+          +temporary/search \
+          +codilime/sent \
+          +codilime/drafts \
+
+set mbox      = "+codilime/archive"
+set postponed = "+codilime/drafts"
+
+set signature="~/.mutt/codilime_sig"
+
+
+macro index ga       "<change-folder>=codilime/archive<enter>" "Go to all mail"
+macro index gd       "<change-folder>=codilime/drafts<enter>" "Go to drafts"
+macro index,pager e  "<save-message>=codilime/archive<enter><enter>" "Archive"
+macro index,pager gi "<change-folder>\Cu=codilime/INBOX<enter>" "go to inbox"
+macro index,pager gs "<change-folder>\Cu=codilime/sent<enter>" "go to starred"
+macro index,pager gr "<change-folder>=codilime/grapes<enter>" "go to grapes"
+macro index,pager gn "<change-folder>\Cu=codilime/inne<enter>" "go to inbox"
+
+color status green default
+# vi:syntax=muttrc
