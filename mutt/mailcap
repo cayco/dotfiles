@@ -1,6 +1,6 @@
-#text/html; w3m -I %{charset} -T text/html; copiousoutput;
+text/html; w3m -I %{charset} -T text/html; copiousoutput;
 
-text/html; ~/.mutt/view_attachment.sh %s html
+#text/html; ~/.mutt/view_attachment.sh %s html
 
 image/png ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.png
 image/jpg ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.jpg

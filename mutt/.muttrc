@@ -40,6 +40,14 @@ bind editor <Tab> complete-query
 # Vew URLs
 macro pager \Cu "|urlview<enter>" "call urlview to open links"
 
+# Open html mail in Safari
+macro attach S \
+"\
+<enter-command>unset wait_key<enter>\
+<shell-escape>rm -f /tmp/mutt-attach<enter>\
+<save-entry><kill-line>/tmp/mutt-attach<enter>\
+<shell-escape>cat ~/.mutt/htmlhead > /tmp/m.html && cat /tmp/mutt-attach >> /tmp/m.html && open /tmp/m.html &<enter>\
+"
 
 # Compose View Options -------------------------------
 set realname = "Krzysztof Kajkowski"          # who am i?
