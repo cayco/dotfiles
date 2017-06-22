@@ -1,23 +1,23 @@
-application/x-crossover-exe; "/Users/cayco/Library/Application Support/CrossOver/desktopdata/CrossOver-0/cxassoc/Scripts/CrossOver-0:application_x-crossover-exe::install" '%s'; \
-    description="CrossOver (Install)"; \
-    test=test -n "$DISPLAY"
-x-content/win32-software; "/Users/cayco/Library/Application Support/CrossOver/desktopdata/CrossOver-0/cxassoc/Scripts/CrossOver-0:application_x-crossover-exe::install" '%s'; \
-    description="CrossOver (Install)"; \
-    test=test -n "$DISPLAY"
-application/x-win-lnk; "/Users/cayco/Library/Application Support/CrossOver/desktopdata/CrossOver-0/cxassoc/Scripts/CrossOver-0:application_x-crossover-lnk::run" '%s'; \
-    description="CrossOver (Run)"; \
-    test=test -n "$DISPLAY"
-application/x-crossover-lnk; "/Users/cayco/Library/Application Support/CrossOver/desktopdata/CrossOver-0/cxassoc/Scripts/CrossOver-0:application_x-crossover-lnk::run" '%s'; \
-    description="CrossOver (Run)"; \
-    test=test -n "$DISPLAY"
-application/x-ms-shortcut; "/Users/cayco/Library/Application Support/CrossOver/desktopdata/CrossOver-0/cxassoc/Scripts/CrossOver-0:application_x-crossover-lnk::run" '%s'; \
-    description="CrossOver (Run)"; \
-    test=test -n "$DISPLAY"
-application/x-crossover-msi; "/Users/cayco/Library/Application Support/CrossOver/desktopdata/CrossOver-0/cxassoc/Scripts/CrossOver-0:application_x-crossover-msi::install" '%s'; \
-    description="CrossOver (Install)"; \
-    test=test -n "$DISPLAY"
-text/html; links %s ; nametemplate=%s.html
-text/html; links -dump %s ; nametemplate=%s.html ; copiousoutput
+#text/html; w3m -I %{charset} -T text/html; copiousoutput;
+
+text/html; ~/.mutt/view_attachment.sh %s html
+
 image/png ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.png
 image/jpg ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.jpg
 image/gif ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.gif
+
+application/msword; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
+#
+# # Images
+image/jpeg; ~/.mutt/view_attachment.sh %s jpg
+image/pjpeg; ~/.mutt/view_attachment.sh %s jpg
+#
+# # PDFs
+application/pdf; ~/.mutt/view_attachment.sh %s pdf
+
+#
+# # Unidentified files
+application/octet-stream; ~/.mutt/view_attachment.sh %s "-"
+
+text/calendar; ~/mutt-ical.py -i -e "krzysztof.kajkowski@codilime.com" %s
+application/ics; ~/mutt-ical.py -i -e "krzysztof.kajkowski@codilime.com" %s
