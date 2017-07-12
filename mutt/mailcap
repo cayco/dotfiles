@@ -6,7 +6,6 @@ image/png ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.png
 image/jpg ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.jpg
 image/gif ; qlmanage -p %s 2>/dev/null ; nametmplate=%s.gif
 
-application/msword; ~/.mutt/view_attachment.sh %s "-" '/Applications/TextEdit.app'
 #
 # # Images
 image/jpeg; ~/.mutt/view_attachment.sh %s jpg
@@ -21,3 +20,9 @@ application/octet-stream; ~/.mutt/view_attachment.sh %s "-"
 
 text/calendar; ~/mutt-ical.py -i -e "krzysztof.kajkowski@codilime.com" %s
 application/ics; ~/mutt-ical.py -i -e "krzysztof.kajkowski@codilime.com" %s
+
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; ~/.mutt/view_attachment.sh %s xlsx
+
+application/vnd.openxmlformats-officedocument.wordprocessingml.document; ~/.mutt/view_attachment.sh %s docx
+
+*/*; ~/.mutt/view_attachment.sh %s
