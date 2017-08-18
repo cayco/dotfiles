@@ -35,6 +35,8 @@ hdr_order Date From To Cc
 #set query_command="/usr/local/bin/muttqt -q '%s'"
 set query_command = "contacts -Sf '%eTOKEN%n' '%s' 2>&1 | grep -v CoreData | sed -e 's/TOKEN/\t/g'"
 
+# add sender to macOs Address Book
+macro index,pager A "<pipe-message> ~/.mutt/findmail.sh<return>" "add the sender address to abook"
 bind editor <Tab> complete-query
 
 # Vew URLs
