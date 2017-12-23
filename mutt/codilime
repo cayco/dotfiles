@@ -8,22 +8,31 @@ set realname = "Krzysztof Kajkowski"
 ## IMAP
 alternates codilime@codilime.pl
 mailboxes +codilime/INBOX \
-          +codilime/archive \
           +codilime/grapes\
           +codilime/inne\
           +temporary/search \
           +codilime/sent \
           +codilime/drafts \
 
+
 set mbox      = "+codilime/archive"
 set postponed = "+codilime/drafts"
 
 set signature="~/.mutt/codilime_sig"
 
+macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><clear-flag>N<enter><modify-labels>+archive -unread -inbox -new<enter><save-message>=codilime/archive<enter>:set confirmappend=yes delete=ask-yes resolve=yes<enter><next-undeleted>" "Archive message and"
 
-macro index ga       "<change-folder>=codilime/archive<enter>" "Go to all mail"
+virtual-mailboxes "Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@codilime.com"
+virtual-mailboxes "Archiwum 1M" "notmuch://?query=date:last_month.. and to:krzysztof.kajkowski@codilime.com and not from:grapes@codilime.com"
+virtual-mailboxes "Grapes" "notmuch://?query=date:last_month.. and from:grapes@codilime.com"
+virtual-mailboxes "Helpdesk" "notmuch://?query=date:last_month.. and subject:HELP JIRA"
+virtual-mailboxes "Archiwum 2Q17" "notmuch://?query=date:2017-07-01..2017-12-31 and to:krzysztof.kajkowski@codilime.com"
+virtual-mailboxes "Archiwum 1Q17" "notmuch://?query=date:2017-01-01..2017-07-01 and to:krzysztof.kajkowski@codilime.com"
+virtual-mailboxes "Wysłane" "notmuch://?query=from:krzysztof.kajkowski@codilime.com"
+
 macro index gd       "<change-folder>=codilime/drafts<enter>" "Go to drafts"
-macro index,pager e  "<save-message>=codilime/archive<enter><enter>" "Archive"
+macro index ga       "<change-folder>=codilime/archive<enter>" "Go to all mail"
+macro index,pager E  "<save-message>=codilime/archive<enter><enter>" "Archive"
 macro index,pager gi "<change-folder>\Cu=codilime/INBOX<enter>" "go to inbox"
 macro index,pager gs "<change-folder>\Cu=codilime/sent<enter>" "go to starred"
 macro index,pager gr "<change-folder>=codilime/grapes<enter>" "go to grapes"
