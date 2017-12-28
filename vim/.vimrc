@@ -69,7 +69,7 @@ Plug 'vimwiki/vimwiki', { 'branch': 'dev' }
 Plug 'tbabej/taskwiki'
 Plug 'powerman/vim-plugin-AnsiEsc'
 Plug 'majutsushi/tagbar'
-Plug 'farseer90718/vim-taskwarrior'
+" Plug 'farseer90718/vim-taskwarrior'
 Plug 'scrooloose/syntastic'
 Plug 'whatyouhide/vim-textobj-xmlattr'
 Plug 'glts/vim-textobj-comment'

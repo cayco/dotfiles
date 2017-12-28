@@ -10,6 +10,10 @@ set realname = "Krzysztof Kajkowski"
 ## IMAP
 alternates cayco@cayco.pl krzysztof.kajkowski@gmail.com
 mailboxes +cayco/INBOX \
+          +cayco/invoices \
+          +cayco/social \
+          +cayco/promotions \
+          +cayco/updates \
           +cayco/archive \
           +temporary/search \
           +cayco/sent \
@@ -20,9 +24,29 @@ set postponed = "+cayco/drafts"
 
 set signature="~/.mutt/cayco_sig"
 
+macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><modify-labels>+archive -unread -inbox -new<enter><clear-flag>N<save-message>=cayco/archive<enter><sync-mailbox>:set confirmappend=yes delete=ask-yes resolve=yes<enter>" "Archive message"
+
+
+unvirtual-mailboxes *
+virtual-mailboxes "cayco: Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@gmail.com"
+virtual-mailboxes "New" "notmuch://?query=tag:new not tag:archive and to:krzysztof.kajkowski@gmail.com"
+virtual-mailboxes "Archiwum 2Q17" "notmuch://?query=date:2017-07-01..2017-12-31 and to:krzysztof.kajkowski@gmail.com"
+virtual-mailboxes "invoices" "notmuch://?query=folder:cayco/invoices "
+virtual-mailboxes "social" "notmuch://?query=folder:cayco/Social"
+virtual-mailboxes "promo" "notmuch://?query=folder:cayco/promotions"
+virtual-mailboxes "updates" "notmuch://?query=folder:cayco/updates"
+virtual-mailboxes "Wysłane" "notmuch://?query=from:krzysztof.kajkowski@gmail.com"
+
+#Add tag to sent messages
+set record = "~/sent-mails"
+set nm_record = yes
+set nm_record_tags = "-inbox,archive,sent"
+# This variable specifies notmuch tag which is used for unread messages.
+set nm_unread_tag = unread
+
+
 macro index ga       "<change-folder>=cayco/archive<enter>" "Go to all mail"
 macro index gd       "<change-folder>=cayco/drafts<enter>" "Go to drafts"
-macro index,pager e  "<save-message>=cayco/archive<enter><enter>" "Archive"
 macro index,pager gi "<change-folder>\Cu=cayco/INBOX<enter>" "go to inbox"
 macro index,pager gs "<change-folder>\Cu=cayco/sent<enter>" "go to starred"
 

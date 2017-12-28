@@ -20,15 +20,23 @@ set postponed = "+codilime/drafts"
 
 set signature="~/.mutt/codilime_sig"
 
-macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><clear-flag>N<enter><modify-labels>+archive -unread -inbox -new<enter><save-message>=codilime/archive<enter>:set confirmappend=yes delete=ask-yes resolve=yes<enter><next-undeleted>" "Archive message and"
+macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><modify-labels>+archive -unread -inbox -new<enter><clear-flag>N<save-message>=codilime/archive<enter><sync-mailbox>:set confirmappend=yes delete=ask-yes resolve=yes<enter>" "Archive message"
 
-virtual-mailboxes "Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@codilime.com"
+unvirtual-mailboxes *
+virtual-mailboxes "CodiLime: Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@codilime.com"
 virtual-mailboxes "Archiwum 1M" "notmuch://?query=date:last_month.. and to:krzysztof.kajkowski@codilime.com and not from:grapes@codilime.com"
 virtual-mailboxes "Grapes" "notmuch://?query=date:last_month.. and from:grapes@codilime.com"
 virtual-mailboxes "Helpdesk" "notmuch://?query=date:last_month.. and subject:HELP JIRA"
 virtual-mailboxes "Archiwum 2Q17" "notmuch://?query=date:2017-07-01..2017-12-31 and to:krzysztof.kajkowski@codilime.com"
 virtual-mailboxes "Archiwum 1Q17" "notmuch://?query=date:2017-01-01..2017-07-01 and to:krzysztof.kajkowski@codilime.com"
 virtual-mailboxes "Wysłane" "notmuch://?query=from:krzysztof.kajkowski@codilime.com"
+
+#Add tag to sent messages
+set record = "~/sent-mails"
+set nm_record = yes
+set nm_record_tags = "-inbox,archive,sent"
+# This variable specifies notmuch tag which is used for unread messages.
+set nm_unread_tag = unread
 
 macro index gd       "<change-folder>=codilime/drafts<enter>" "Go to drafts"
 macro index ga       "<change-folder>=codilime/archive<enter>" "Go to all mail"
@@ -39,4 +47,7 @@ macro index,pager gr "<change-folder>=codilime/grapes<enter>" "go to grapes"
 macro index,pager gn "<change-folder>\Cu=codilime/inne<enter>" "go to inbox"
 
 color status green default
+color index_author red black "~fmelon"
+color index_author red default "~fmarek@codilime.com"
+color index_author red default "~frrugge"
 # vi:syntax=muttrc

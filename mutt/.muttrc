@@ -10,14 +10,14 @@ bind pager g noop
 #source default (codilime) account settings
 source ~/.mutt/codilime
 set spoolfile = "+codilime/INBOX"
+set virtual_spoolfile=yes
+
 # which mailboxes to list in the sidebar,
 mailboxes = +cayco/INBOX
 
 #Handle folder changes
 folder-hook cayco/* source ~/.mutt/cayco
 folder-hook codilime/*     source ~/.mutt/codilime
-
-
 
 # Sane defaults
 
@@ -30,6 +30,12 @@ ignore "Authentication-Results:"
 ignore "DomainKey-Signature:"
 ignore "DKIM-Signature:"
 hdr_order Date From To Cc
+
+set abort_noattach = ask-yes
+# Search for the following regular expression in the body of the email
+# English: attach, attached, attachment, attachments
+#:w
+set attach_keyword = "\\<(attach|attached|attachment|attachments|załącznik|załączam|załączniku|załączniki|załączone|załączony|załączona)\\>"
 
 #muttqt - contact search
 #set query_command="/usr/local/bin/muttqt -q '%s'"
@@ -83,7 +89,7 @@ set sort = reverse-date-received
 set sort_browser=reverse-date
 
 # Set which Editor to use for composing Emails.
-set editor = "vim +/^$ -c 'set syntax=mail tw=72 fo+=w expandtab nosmartindent spell'""
+set editor = "vim +/^$ -c 'set syntax=mail tw=72 fo+=w expandtab nosmartindent spell spelllang=en_us'""
 set text_flowed
 
 # Vew URLs
@@ -100,7 +106,6 @@ bind index,pager s flag-message
 bind index,pager F noop
 macro index,pager m "<save-message>?" "move a message to a mailbox"
 macro index I "<tag-prefix><clear-flag>N" "mark tagged messages as read"
-macro index \CU "<untag-pattern>~A<enter>"
 macro index,pager gl "<change-folder>\Cu=" "open folder"
 macro index,pager G "<change-folder>?" "browse folder"
 
@@ -123,17 +128,46 @@ bind index <space>  collapse-thread
 macro index \Cr "T~U<enter><tag-prefix><clear-flag>N<untag-pattern>.<enter>" "mark all messages as read"
 
 # Saner copy/move dialogs
-macro index C "<copy-message>?<toggle-mailboxes>" "copy a message to a mailbox"
-macro index M "<save-message>?<toggle-mailboxes>" "move a message to a mailbox"# Index View Options ---------------------------------
+#macro index C "<copy-message>?<toggle-mailboxes>" "copy a message to a mailbox"
+#macro index M "<save-message>?<toggle-mailboxes>" "move a message to a mailbox"# Index View Options ---------------------------------
 
 # Sync email
 macro pager,index O "<shell-escape>offlineimap<enter>"           "run offlineimap to sync all mail"
 macro pager,index o "<shell-escape>offlineimap -qf INBOX<enter>" "run offlineimap to sync inbox"
 
 set date_format = "%m/%d"
-set index_format = "[%Z]  %D  %-20.20F  %s"
-set sort = threads                         # like gmail
+# Test  Date Range  Format String  Example
+# --------------------------------------------
+# %[d   Today       %[%H:%M ]      12:34
+# %[m   This month  %[%a %d]       Thu 12
+# %[y   This year   %[%b %d]       Dec 10
+# -     Older       %[%m/%y ]      06/15set sort = threads                         # like gmail
+#
+tag-transforms "inbox"   "i"   \
+               "unread"  "u"   \
+               "replied" "↻ "  \
+               "sent"    "➥ "  \
+               "todo"    "T"   \
+               "deleted" "DEL" \
+               "archive" "ARCH" \
+               "invites" "CAL"
 set sort_aux = reverse-last-date-received  # like gmail
+tag-formats "inbox"   "GI" \
+            "unread"  "GU" \
+            "replied" "GR" \
+            "sent"    "GS" \
+            "todo"    "Gt" \
+            "deleted" "GD" \
+            "archive" "GA" \
+            "invites" "Gi"
+#set index_format = "[%Z]  %D  %-20.20F  %s"
+# The default index_format is:
+#       '%4C %Z %{%b %d} %-15.15L (%?l?%4l&%4c?) %s'
+#
+# We replace the date field '%{%b %d}', giving:
+#
+set index_format='%4C %Z %<[y?%<[m?%<[d?%[%H:%M ]&%[%a %d]>&%[%b %d]>&%[%m/%y ]> %-15.15L (%?l?%4l&%4c?)  %?GU?%GU& ? %?GR?%GR& ? %?GA?%GA& ? %?GI?%GI& ? %?GS?%GS& ? %s'
+
 set uncollapse_jump                        # don't collapse on an unread message
 set sort_re                                # thread based on regex
 set reply_regexp = "^(([Rr][Ee]?(\[[0-9]+\])?: *)?(\[[^]]+\] *)?)*"
@@ -149,6 +183,7 @@ set sidebar_visible=yes
 #neomutt
 #set sidebar_delim='|'
 #set sidebar_sort=no
+set sidebar_format = "%B%?F? [%F]?%* %?N?%N/?%S"
 
 set status_chars  = " *%A"
 set status_format = "───[ Folder: %f ]───[%r%m messages%?n? (%n new)?%?d? (%d to delete)?%?t? (%t tagged)? ]───%>─%?p?( %p postponed )?───"
@@ -167,7 +202,15 @@ bind index CO sidebar-open
 bind pager CP sidebar-prev
 bind pager CN sidebar-next
 bind pager CO sidebar-open
- 
+
+# easy stwich between acccouts
+bind index L noop
+#macro index LM       "<sidebar-toggle-virtual><change-folder>=codilime/INBOX<enter>" "Go to CodiLime mail"
+macro index LM       "<change-folder>=codilime/INBOX<enter>" "Go to CodiLime mail"
+macro index CM       "<change-folder>=cayco/INBOX<enter>" "Go to cayco mail"
+
+
+
 # b toggles sidebar visibility
 macro index b 'toggle sidebar_visible'
 macro pager b 'toggle sidebar_visible'
@@ -194,6 +237,17 @@ bind pager G  bottom
 
 # View attachments properly.
 bind attach <return> view-mailcap#
+
+# common notmuch settings
+# archive mesg
+#macro index e "<modify-labels>+archive -unread -inbox -new<enter>" "Archive message"
+#macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><clear-flag>N<tag-prefix><modify-labels>+archive -unread -inbox -new <enter><save-message>=codilime/archive<enter><enter>:set confirmappend=yes delete=ask-yes resolve=yes\n<next-undeleted>"
+#
+bind index,pager Q sidebar-toggle-virtual
+
+set vfolder_format = "%6n(%6N) %f"
+#set nm_default_uri = "notmuch:///Users/krzysztofkajkowski/.mail"
+
 
 # make sure that you are using mutt linked against slang, not ncurses, or
 # suffer the consequences of weird color issues. use "mutt -v" to check this.
