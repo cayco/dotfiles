@@ -29,8 +29,9 @@ macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><modify-l
 
 unvirtual-mailboxes *
 virtual-mailboxes "cayco: Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@gmail.com"
-virtual-mailboxes "New" "notmuch://?query=tag:new not tag:archive and to:krzysztof.kajkowski@gmail.com"
-virtual-mailboxes "Archiwum 2Q17" "notmuch://?query=date:2017-07-01..2017-12-31 and to:krzysztof.kajkowski@gmail.com"
+virtual-mailboxes "New" "notmuch://?query=tag:new not tag:archive and to:krzysztof.kajkowski@gmail.com or to:cayco@cayco.pl or to:krzysztof@kajkowski.com"
+virtual-mailboxes "Archiwum 2Q17" "notmuch://?query=date:2017-07-01..2017-12-31 and folder:cayco/archive"
+virtual-mailboxes "Archiwum 1Q18" "notmuch://?query=date:2017-07-01..2018-06-31 and folder:cayco/archive"
 virtual-mailboxes "invoices" "notmuch://?query=folder:cayco/invoices "
 virtual-mailboxes "social" "notmuch://?query=folder:cayco/Social"
 virtual-mailboxes "promo" "notmuch://?query=folder:cayco/promotions"

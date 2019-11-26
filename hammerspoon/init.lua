@@ -1,407 +1,34 @@
-
 -- hotkey mash
-local mash   = {"ctrl", "alt"}
-local mash_app   = {"cmd", "alt", "ctrl"}
-local mash_shift = {"ctrl", "alt", "shift"}
-local main_monitor = "Color LCD"
-local second_monitor = "HP P201"
+local mash   = {"ctrl", "alt", "shift", "cmd"} 
+-- local mash_app   = {"cmd", "alt", "ctrl"} 
+--local mash_shift = {"ctrl", "alt", "shift"}
+require('keyboard') -- Load Hammerspoon bits from https://github.com/jasonrudolph/keyboard
+hs.loadSpoon("SpoonInstall")
+-- https://www.songofcode.com/posts/powerful-hammerspoon/
 
 
+spoon.SpoonInstall.repos.zzspoons = {
+  url = "https://github.com/zzamboni/zzSpoons",
+  desc = "zzamboni's spoon repository",
+}
 
+spoon.SpoonInstall.use_syncinstall = true
+Install=spoon.SpoonInstall
 
--- Vim style modal bindings
+--Install:andUse("BetterTouchTool", { loglevel = 'info' })
+--BTT = spoon.BetterTouchTool
 
--- Normal mode {{{1
-
-local normal = hs.hotkey.modal.new()
-
--- <c-[> - enter Normal mode {{{2
--- I don't remap <esc> because it's too risky
-enterNormal = hs.hotkey.bind({"ctrl"}, "[", function()
-    normal:enter()
-    hs.alert.show('Normal mode')
-end)
--- }}}2
-
--- Movements {{{2
-
--- h - move left {{{3
-function left() hs.eventtap.keyStroke({}, "Left") end
-normal:bind({}, 'h', left, nil, left)
--- }}}3
-
--- l - move right {{{3
-function right() hs.eventtap.keyStroke({}, "Right") end
-normal:bind({}, 'l', right, nil, right)
--- }}}3
-
--- k - move up {{{3
-function up() hs.eventtap.keyStroke({}, "Up") end
-normal:bind({}, 'k', up, nil, up)
--- }}}3
-
--- j - move down {{{3
-function down() hs.eventtap.keyStroke({}, "Down") end
-normal:bind({}, 'j', down, nil, down)
--- }}}3
-
--- w - move to next word {{{3
-function word() hs.eventtap.keyStroke({"alt"}, "Right") end
-normal:bind({}, 'w', word, nil, word)
-normal:bind({}, 'e', word, nil, word)
--- }}}3
-
--- b - move to previous word {{{3
-function back() hs.eventtap.keyStroke({"alt"}, "Left") end
-normal:bind({}, 'b', back, nil, back)
--- }}}3
-
--- 0, H - move to beginning of line {{{3
-normal:bind({}, '0', function()
-    hs.eventtap.keyStroke({"cmd"}, "Left")
-end)
-
-normal:bind({"shift"}, 'h', function()
-    hs.eventtap.keyStroke({"cmd"}, "Left")
-end)
--- }}}3
-
--- $, L - move to end of line {{{3
-normal:bind({"shift"}, '4', function()
-    hs.eventtap.keyStroke({"cmd"}, "Right")
-end)
-
-normal:bind({"shift"}, 'l', function()
-    hs.eventtap.keyStroke({"cmd"}, "Right")
-end)
--- }}}3
-
--- g - move to beginning of text {{{3
-normal:bind({}, 'g', function()
-    hs.eventtap.keyStroke({"cmd"}, "Up")
-end)
--- }}}3
-
--- G - move to end of text {{{3
-normal:bind({"shift"}, 'g', function()
-    hs.eventtap.keyStroke({"cmd"}, "Down")
-end)
--- }}}3
-
--- z - center cursor {{{3
-normal:bind({}, 'z', function()
-    hs.eventtap.keyStroke({"ctrl"}, "L")
-end)
--- }}}3
-
--- <c-f> - page down {{{3
-normal:bind({"ctrl"}, "f", function()
-    hs.eventtap.keyStroke({}, "pagedown")
-end)
--- }}}3
-
--- <c-b> - page up {{{3
-normal:bind({"ctrl"}, "b", function()
-    hs.eventtap.keyStroke({}, "pageup")
-end)
--- }}}3
-
--- }}}2
-
--- Insert {{{2
-
--- i - insert at cursor {{{3
-normal:bind({}, 'i', function()
-    normal:exit()
-    hs.alert.show('Insert mode')
-end)
--- }}}3
-
--- I - insert at beggining of line {{{3
-normal:bind({"shift"}, 'i', function()
-    hs.eventtap.keyStroke({"cmd"}, "Left")
-    normal:exit()
-    hs.alert.show('Insert mode')
-end)
--- }}}3
-
--- a - append after cursor {{{3
-normal:bind({}, 'a', function()
-    hs.eventtap.keyStroke({}, "Right")
-    normal:exit()
-    hs.alert.show('Insert mode')
-end)
--- }}}3
-
--- A - append to end of line {{{3
-normal:bind({"shift"}, 'a', function()
-    hs.eventtap.keyStroke({"cmd"}, "Right")
-    normal:exit()
-    hs.alert.show('Insert mode')
-end)
--- }}}3
-
--- o - open new line below cursor {{{3
-normal:bind({}, 'o', nil, function()
-    local app = hs.application.frontmostApplication()
-    if app:name() == "Finder" then
-        hs.eventtap.keyStroke({"cmd"}, "o")
-    else
-        hs.eventtap.keyStroke({"cmd"}, "Right")
-        normal:exit()
-        hs.eventtap.keyStroke({}, "Return")
-        hs.alert.show('Insert mode')
-    end
-end)
--- }}}3
-
--- O - open new line above cursor {{{3
-normal:bind({"shift"}, 'o', nil, function()
-    local app = hs.application.frontmostApplication()
-    if app:name() == "Finder" then
-        hs.eventtap.keyStroke({"cmd", "shift"}, "o")
-    else
-        hs.eventtap.keyStroke({"cmd"}, "Left")
-        normal:exit()
-        hs.eventtap.keyStroke({}, "Return")
-        hs.eventtap.keyStroke({}, "Up")
-        hs.alert.show('Insert mode')
-    end
-end)
--- }}}3
-
--- }}}2
-
--- Delete {{{2
-
--- d - delete character before the cursor {{{3
-local function delete()
-    hs.eventtap.keyStroke({}, "delete")
-end
-normal:bind({}, 'd', delete, nil, delete)
--- }}}3
-
--- x - delete character after the cursor {{{3
-local function fndelete()
-    hs.eventtap.keyStroke({}, "Right")
-    hs.eventtap.keyStroke({}, "delete")
-end
-normal:bind({}, 'x', fndelete, nil, fndelete)
--- }}}3
-
--- D - delete until end of line {{{3
-normal:bind({"shift"}, 'D', nil, function()
-    normal:exit()
-    hs.eventtap.keyStroke({"ctrl"}, "k")
-    normal:enter()
-end)
--- }}}3
-
--- }}}2
-
--- : - in Safari, focus address bar; everywhere else, call Alfred {{{2
-normal:bind({"shift"}, ';', function()
-    local app = hs.application.frontmostApplication()
-    if app:name() == "Safari" then
-        hs.eventtap.keyStroke({"cmd"}, "l") -- go to address bar
-    else
-        hs.eventtap.keyStroke({"ctrl"}, "space") -- call Alfred
-    end
-end)
--- }}}2
-
--- f, s - call Shortcat {{{2
-normal:bind({}, 'f', function()
-    normal:exit()
-    hs.alert.show('Insert mode')
-    hs.eventtap.keyStroke({"alt"}, "space")
-end)
-
-normal:bind({}, 's', function()
-    normal:exit()
-    hs.alert.show('Insert mode')
-    hs.eventtap.keyStroke({"alt"}, "space")
-end)
--- }}}2
-
--- / - search {{{2
-normal:bind({}, '/', function() hs.eventtap.keyStroke({"cmd"}, "f") end)
--- }}}2
-
--- u - undo {{{2
-normal:bind({}, 'u', function()
-    hs.eventtap.keyStroke({"cmd"}, "z")
-end)
--- }}}2
-
--- <c-r> - redo {{{2
-normal:bind({"ctrl"}, 'r', function()
-    hs.eventtap.keyStroke({"cmd", "shift"}, "z")
-end)
--- }}}2
-
--- y - yank {{{2
-normal:bind({}, 'y', function()
-    hs.eventtap.keyStroke({"cmd"}, "c")
-end)
--- }}}2
-
--- p - paste {{{2
-normal:bind({}, 'p', function()
-    hs.eventtap.keyStroke({"cmd"}, "v")
-end)
--- }}}2
-
--- }}}1
-
--- Visual mode {{{1
-
-local visual = hs.hotkey.modal.new()
-
--- v - enter Visual mode {{{2
-normal:bind({}, 'v', function() normal:exit() visual:enter() end)
-function visual:entered() hs.alert.show('Visual mode') end
--- }}}2
-
--- <c-[> - exit Visual mode {{{2
-visual:bind({"ctrl"}, '[', function()
-    visual:exit()
-    normal:exit()
-    hs.eventtap.keyStroke({}, "Right")
-    hs.alert.show('Normal mode')
-end)
--- }}}2
-
--- Movements {{{2
-
--- h - move left {{{3
-function vleft() hs.eventtap.keyStroke({"shift"}, "Left") end
-visual:bind({}, 'h', vleft, nil, vleft)
--- }}}3
-
--- l - move right {{{3
-function vright() hs.eventtap.keyStroke({"shift"}, "Right") end
-visual:bind({}, 'l', vright, nil, vright)
--- }}}3
-
--- k - move up {{{3
-function vup() hs.eventtap.keyStroke({"shift"}, "Up") end
-visual:bind({}, 'k', vup, nil, vup)
--- }}}3
-
--- j - move down {{{3
-function vdown() hs.eventtap.keyStroke({"shift"}, "Down") end
-visual:bind({}, 'j', vdown, nil, vdown)
--- }}}3
-
--- w - move to next word {{{3
-function word() hs.eventtap.keyStroke({"alt", "shift"}, "Right") end
-visual:bind({}, 'w', word, nil, word)
-visual:bind({}, 'e', word, nil, word)
--- }}}3
-
--- b - move to previous word {{{3
-function back() hs.eventtap.keyStroke({"alt", "shift"}, "Left") end
-visual:bind({}, 'b', back, nil, back)
--- }}}3
-
--- 0, H - move to beginning of line {{{3
-visual:bind({}, '0', function()
-    hs.eventtap.keyStroke({"cmd", "shift"}, "Left")
-end)
-
-visual:bind({"shift"}, 'h', function()
-    hs.eventtap.keyStroke({"cmd", "shift"}, "Left")
-end)
--- }}}3
-
--- $, L - move to end of line {{{3
-visual:bind({"shift"}, '4', function()
-    hs.eventtap.keyStroke({"cmd", "shift"}, "Right")
-end)
-
-visual:bind({"shift"}, 'l', function()
-    hs.eventtap.keyStroke({"cmd", "shift"}, "Right")
-end)
--- }}}3
-
--- g - move to beginning of text {{{3
-visual:bind({}, 'g', function()
-    hs.eventtap.keyStroke({"shift", "cmd"}, "Up")
-end)
--- }}}3
-
--- G - move to end of text {{{3
-visual:bind({"shift"}, 'g', function()
-    hs.eventtap.keyStroke({"shift", "cmd"}, "Down")
-end)
--- }}}3
-
--- }}}2
-
--- d, x - delete character before the cursor {{{3
-visual:bind({}, 'd', delete, nil, delete)
-visual:bind({}, 'x', delete, nil, delete)
--- }}}3
-
--- y - yank {{{2
-visual:bind({}, 'y', function()
-    hs.eventtap.keyStroke({"cmd"}, "c")
-    hs.timer.doAfter(0.1, function()
-    visual:exit()
-    normal:enter()
-    hs.eventtap.keyStroke({}, "Right")
-    hs.alert.show('Normal mode')
-end)
-end)
--- }}}2
-
--- p - paste {{{2
-visual:bind({}, 'p', function()
-    hs.eventtap.keyStroke({"cmd"}, "v")
-    visual:exit()
-    normal:enter()
-    hs.eventtap.keyStroke({}, "Right")
-    hs.alert.show('Normal mode')
-end)
--- }}}2
-
--- }}}1
-
-
-hs.window.filter.new('MacVim')-- {{{1
-    :subscribe(hs.window.filter.windowFocused,function()
-        normal:exit()
-        enterNormal:disable()
-    end)
-    :subscribe(hs.window.filter.windowUnfocused,function()
-        enterNormal:enable()
-    end)-- }}}1
-
-hs.window.filter.new{'Terminal','iTerm2','iTerm'}-- {{{1
-    :subscribe(hs.window.filter.windowFocused,function()
-        normal:exit()
-        enterNormal:disable()
-    end)
-    :subscribe(hs.window.filter.windowUnfocused,function()
-        enterNormal:enable()
-    end)-- }}}1
-
+Install:andUse("WinWin")
 
 hs.grid.MARGINX = 0
 hs.grid.MARGINY = 0
 hs.grid.GRIDWIDTH = 7
 hs.grid.GRIDHEIGHT = 3
 
--- disable animation
-hs.window.animationDuration = 0
+col = hs.drawing.color.x11
 
--- Set grid size.
-hs.grid.GRIDWIDTH  = 12
-hs.grid.GRIDHEIGHT = 12
-hs.grid.MARGINX    = 0
-hs.grid.MARGINY    = 0
--- Set window animation off. It's much smoother.
+-- disable animation
+hs.window.animationDuration = 0 -- Set grid size.  hs.grid.GRIDWIDTH  = 12 hs.grid.GRIDHEIGHT = 12 hs.grid.MARGINX    = 0 hs.grid.MARGINY    = 0 -- Set window animation off. It's much smoother.
 hs.window.animationDuration = 0
 -- Set volume increments
 local volumeIncrement = 5
@@ -418,809 +45,113 @@ function reloadConfig(files)
     end
 end
 hs.pathwatcher.new(os.getenv("HOME") .. "/.hammerspoon/", reloadConfig):start()
-hs.alert.show("Hammerspoon: konfiguracja przeladowana")
 
 
-local usbWatcher = nil
-
-function usbDeviceCallback(data)
-    if (data["productName"] == "ScanSnap S1300i") then
-        if (data["eventType"] == "added") then
-            hs.application.launchOrFocus("ScanSnap Manager")
-        elseif (data["eventType"] == "removed") then
-            app = hs.appfinder.appFromName("ScanSnap Manager")
-            app:kill()
-        end
-    end
-end
-
-usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
-usbWatcher:start()
-
-local mouseCircle = nil
-local mouseCircleTimer = nil
-
-function mouseHighlight()
-    -- Delete an existing highlight if it exists
-    if mouseCircle then
-        mouseCircle:delete()
-        if mouseCircleTimer then
-            mouseCircleTimer:stop()
-        end
-    end
-    -- Get the current co-ordinates of the mouse pointer
-    mousepoint = hs.mouse.getAbsolutePosition()
-    -- Prepare a big red circle around the mouse pointer
-    mouseCircle = hs.drawing.circle(hs.geometry.rect(mousepoint.x-40, mousepoint.y-40, 80, 80))
-    mouseCircle:setStrokeColor({["red"]=1,["blue"]=0,["green"]=0,["alpha"]=1})
-    mouseCircle:setFill(false)
-    mouseCircle:setStrokeWidth(5)
-    mouseCircle:show()
-
-    -- Set a timer to delete the circle after 3 seconds
-    mouseCircleTimer = hs.timer.doAfter(3, function() mouseCircle:delete() end)
-end
-
-hs.hotkey.bind(mash, "d", mouseHighlight)
-
-
-hs.hotkey.bind(mash, ';', function() hs.grid.snap(hs.window.focusedWindow()) end)
-hs.hotkey.bind(mash, "'", function() hs.fnutils.map(hs.window.visibleWindows(), hs.grid.snap) end)
-
--- application help
-local function open_help()
-  help_str = "1 - Safari, 2 - Mail, " ..
-            "3 - Pathfinder, 5 - Slack, 6 - Adium"        
-  hs.alert.show(
-   help_str, 2)
-end
-
--- Launch applications
-hs.hotkey.bind(mash_app, 'D', function () hs.application.launchOrFocus("Safari") end)
-hs.hotkey.bind(mash_app, '1', function () hs.application.launchOrFocus("Safari") end)
-hs.hotkey.bind(mash_app, '2', function () hs.application.launchOrFocus("Mail") end)
-hs.hotkey.bind(mash_app, '3', function () hs.application.launchOrFocus("Path Finder") end)
--- mash_app '4' reserved for dash global key
-hs.hotkey.bind(mash_app, '5', function () hs.application.launchOrFocus("Slack") end)
-hs.hotkey.bind(mash_app, '6', function () hs.application.launchOrFocus("Adium") end)
-hs.hotkey.bind(mash_app, '/', open_help)
-
-hs.hotkey.bind(mash, 'M', hs.grid.maximizeWindow)
-hs.hotkey.bind(mash, 'F', function() hs.window.focusedWindow():toggleFullScreen() end)
-
--- multi monitor
-hs.hotkey.bind(mash, 'N', hs.grid.pushWindowNextScreen)
-hs.hotkey.bind(mash, 'P', hs.grid.pushWindowPrevScreen)
-
--- move windows
-hs.hotkey.bind(mash, 'H', hs.grid.pushWindowLeft)
-hs.hotkey.bind(mash, 'J', hs.grid.pushWindowDown)
-hs.hotkey.bind(mash, 'K', hs.grid.pushWindowUp)
-hs.hotkey.bind(mash, 'L', hs.grid.pushWindowRight)
-
--- resize windows
-hs.hotkey.bind(mash, 'Y', hs.grid.resizeWindowThinner)
-hs.hotkey.bind(mash, 'U', hs.grid.resizeWindowShorter)
-hs.hotkey.bind(mash, 'I', hs.grid.resizeWindowTaller)
-hs.hotkey.bind(mash, 'O', hs.grid.resizeWindowWider)
-
--- Window Hints
-hs.hotkey.bind(mash, '.', hs.hints.windowHints)
-
---------------------------------------------------------------------------------
--- LAYOUTS
--- SINTAX:
---  {
---    name = "App name" ou { "App name", "App name" }
---    func = function(index, win)
---      COMMANDS
---    end
---  },
+-- https://zzamboni.org/post/my-hammerspoon-configuration-with-commentary/
 --
--- It searches for application "name" and call "func" for each window object
---------------------------------------------------------------------------------
-local layouts = {
-  {
-    name = {"Airmail", "Calendar", "iTunes", "Last.fm Scrobbler", "Messages", "Skype", "Dash", "Yummy FTP"},
-    func = function(index, win)
-      win:moveToScreen(hs.screen.get(main_monitor))
-      win:maximize()
-    end
-  },
-  {
-    name = {"TextWrangler"},
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-        hs.window.fullscreenAlmostCenter(win)
-      else
-        win:maximize()
-      end
-    end
-  },
-  {
-    name = {"Cocoa Rest Client", "MacDown", "Firefox"},
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-        hs.window.fullscreenCenter(win)
-      else
-        win:maximize()
-      end
-    end
-  },
-  {
-    name = {"Evernote", "JSON Accelerator", "Preview", "Slack"},
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-        hs.window.fullscreenCenter(win)
-      else
-        win:maximize()
-      end
-    end
-  },
-  {
-    name = {"Android Studio", "Xcode", "SourceTree"},
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-        hs.window.fullscreenWidth(win)
-      else
-        win:maximize()
-      end
-    end
-  },
-  {
-    name = "Finder",
-    func = function(index, win)
 
-      if (index == 1) then
-        if (#hs.screen.allScreens() > 1) then
-          win:moveToScreen(hs.screen.get(second_monitor))
-        end
-
-        win:upLeft()
-      elseif (index == 2) then
-        if (#hs.screen.allScreens() > 1) then
-          win:moveToScreen(hs.screen.get(second_monitor))
-        end
-
-        win:downLeft()
-      elseif (index == 3) then
-        if (#hs.screen.allScreens() > 1) then
-          win:moveToScreen(hs.screen.get(second_monitor))
-        end
-
-        win:downRight()
-      elseif (index == 4) then
-        if (#hs.screen.allScreens() > 1) then
-          win:moveToScreen(hs.screen.get(second_monitor))
-        end
-
-        win:upRight()
-      elseif (index == 5) then
-        win:moveToScreen(hs.screen.get(main_monitor))
-
-        win:upLeft()
-      elseif (index == 6) then
-        win:moveToScreen(hs.screen.get(main_monitor))
-
-        win:downLeft()
-      elseif (index == 7) then
-        win:moveToScreen(hs.screen.get(main_monitor))
-
-        win:downRight()
-      elseif (index == 8) then
-        win:moveToScreen(hs.screen.get(main_monitor))
-
-        win:upRight()
-      else
-        win:close()
-      end
-    end
-  },
-  {
-    name = "iTerm",
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-      end
-
-      if (index == 1) then
-        win:left()
-      elseif (index == 2) then
-        win:right()
-      end
-    end
-  },
-  {
-    name = "iOS Simulator",
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-      end
-
-      local screen = win:screen()
-      local screen_frame = screen:frame()
-      local frame = win:frame()
-      frame.x = screen_frame.w / 2
-      frame.y = screen_frame.y
-      win:setFrame(frame)
-    end
-  },
-  {
-    name = "Genymotion",
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-        win:moveToScreen(hs.screen.get(second_monitor))
-      end
-
-      local screen = win:screen()
-      local screen_frame = screen:frame()
-      local frame = win:frame()
-      frame.x = screen_frame.w / 2
-      frame.y = screen_frame.y + 50
-      frame.w = screen_frame.w / 3
-      frame.h = screen_frame.h / 2
-      win:setFrame(frame)
-    end
-  },
-  {
-    name = {"Atom", "Light Table"},
-    func = function(index, win)
-      if (#hs.screen.allScreens() > 1) then
-
-        local allScreens = hs.screen.allScreens()
-        for i, screen in ipairs(allScreens) do
-          if screen:name() == second_monitor then
-            win:moveToScreen(screen)
-          end
-        end
-
-        local screen = win:screen()
-        win:setFrame({
-          x = screen:frame().x,
-          y = hs.screen.minY(screen),
-          w = hs.screen.minWidth(false) + hs.screen.minX(screen),
-          h = hs.screen.minHeight(screen)
-        })
-      else
-        win:maximize()
-      end
-    end
-  },
-}
-
-local closeAll = {
-  "iTunes",
-  "Skype",
-  "Messages",
-  "XCode",
-  "Android Studio",
-  "Simulator",
-  "Word",
-  "Excel",
-  "TextWrangler",
-  "Cocoa Rest Client",
-  "Last.fm",
-  "Preview",
-  "JSON Accelerator",
-  "Yummy FTP",
-  "player",
-  "FileMerge",
-  "Fabric",
-  "Color Picker"
-}
-
-local openAll = {
-  "iTunes",
-  "Skype",
-  "Messages",
-  "Last.fm"
-}
-
-
-
-function config()
---[[  hs.hotkey.bind(cmd_alt, "right", function()
-    local win = hs.window.focusedWindow()
-    win:right()
-  end)
-
-  hs.hotkey.bind(cmd_alt, "left", function()
-    local win = hs.window.focusedWindow()
-    win:left()
-  end)
-
-  hs.hotkey.bind(cmd_alt, "up", function()
-    local win = hs.window.focusedWindow()
-    win:up()
-  end)
-
-  hs.hotkey.bind(cmd_alt, "down", function()
-    local win = hs.window.focusedWindow()
-    win:down()
-  end)]]
-
-  hs.hotkey.bind(mash, "left", function()
-    local win = hs.window.focusedWindow()
-    win:upLeft()
-  end)
-
-  hs.hotkey.bind(mash, "down", function()
-    local win = hs.window.focusedWindow()
-    win:downLeft()
-  end)
-
-  hs.hotkey.bind(mash, "right", function()
-    local win = hs.window.focusedWindow()
-    win:downRight()
-  end)
-
-  hs.hotkey.bind(mash, "up", function()
-    local win = hs.window.focusedWindow()
-    win:upRight()
-  end)
-    
-    hs.hotkey.bind(mash_app, "left", function()
-    local win = hs.window.focusedWindow()
-    win:left()
-  end)
-  hs.hotkey.bind(mash_app, "down", function()
-    local win = hs.window.focusedWindow()
-    win:down()
-  end)
-
-  hs.hotkey.bind(mash_app, "right", function()
-    local win = hs.window.focusedWindow()
-    win:right()
-  end)
-
-  hs.hotkey.bind(mash_app, "up", function()
-    local win = hs.window.focusedWindow()
-    win:up()
-  end)
--- VIM keys in all apps
---
-hs.hotkey.bind({"ctrl"}, "j", function()
-  hs.eventtap.keyStroke({""}, "down")
-end)
-hs.hotkey.bind({"ctrl"}, "h", function()
-  hs.eventtap.keyStroke({""}, "left")
-end)
-hs.hotkey.bind({"ctrl"}, "k", function()
-  hs.eventtap.keyStroke({""}, "up")
-end)
-hs.hotkey.bind({"ctrl"}, "l", function()
-  hs.eventtap.keyStroke({""}, "right")
-end)
---[[
-  hs.hotkey.bind(cmd_alt, "c", function()
-    local win = hs.window.focusedWindow()
-    hs.window.fullscreenCenter(win)
-  end)
-
-  hs.hotkey.bind(mash_app, "c", function()
-    local win = hs.window.focusedWindow()
-    hs.window.fullscreenAlmostCenter(win)
-  end)
-
-  hs.hotkey.bind(cmd_alt, "f", function()
-    local win = hs.window.focusedWindow()
-    win:maximize()
-  end)
-
-
-  hs.hotkey.bind(mash_app, "f", function()
-    local win = hs.window.focusedWindow()
-    if (win) then
-      hs.window.fullscreenWidth(win)
-    end
-  end)
-
-  hs.hotkey.bind(mash_app, "h", function()
-    hs.hints.windowHints()
-  end)
-
-  hs.hotkey.bind(mash_app, "1", function()
-    local win = hs.window.focusedWindow()
-    if (win) then
-      win:moveToScreen(hs.screen.get(second_monitor))
-    end
-  end)
-
-  hs.hotkey.bind(mash_app, "2", function()
-    local win = hs.window.focusedWindow()
-    if (win) then
-      win:moveToScreen(hs.screen.get(main_monitor))
-    end
-  end)
-
-  hs.hotkey.bind(cmd_alt_ctrl, "R", function()
-    hs.reload()
-    hs.alert.show("Config loaded")
-  end)
-
-  hs.hotkey.bind(cmd_alt_ctrl, "P", function()
-    hs.alert.show("Closing")
-    for i,v in ipairs(closeAll) do
-      local app = hs.application(v)
-      if (app) then
-        if (app.name) then
-          hs.alert.show(app:name())
-        end
-        if (app.kill) then
-        app:kill()
-      end
-      end
-    end
-  end)
-
-  hs.hotkey.bind(cmd_alt_ctrl, "O", function()
-    hs.alert.show("Openning")
-    for i,v in ipairs(openAll) do
-      hs.alert.show(v)
-      hs.application.open(v)
-    end
-  end)
-
-  hs.hotkey.bind(cmd_alt_ctrl, "3", function()
-    applyLayouts(layouts)
-  end)
-
-  hs.hotkey.bind(cmd_alt_ctrl, "4", function()
-
-    local focusedWindow = hs.window.focusedWindow()
-    local app = focusedWindow:application()
-    if (app) then
-      applyLayout(layouts, app)
-    end
-  end)
-    ]]
-end
---------------------------------------------------------------------------------
--- METHODS - BECAREFUL :)
---------------------------------------------------------------------------------
-
-function applyLayout(layouts, app)
-  if (app) then
-    local appName = app:title()
-    for i, layout in ipairs(layouts) do
-      if (type(layout.name) == "table") then
-        for i, layAppName in ipairs(layout.name) do
-          if (layAppName == appName) then
-            local wins = app:allWindows()
-            local counter = 1
-            for j, win in ipairs(wins) do
-              if (win:isVisible() and layout.func) then
-                layout.func(counter, win)
-                counter = counter + 1
-              end
-            end
-          end
-        end
-      elseif (type(layout.name) == "string") then
-        if (layout.name == appName) then
-          local wins = app:allWindows()
-          local counter = 1
-          for j, win in ipairs(wins) do
-            if (win:isVisible() and layout.func) then
-              layout.func(counter, win)
-              counter = counter + 1
-            end
-          end
-        end
-      end
-    end
-  end
-end
-
-function applyLayouts(layouts)
-  for i, layout in ipairs(layouts) do
-    if (type(layout.name) == "table") then
-      for i, appName in ipairs(layout.name) do
-        local app = hs.appfinder.appFromName(appName)
-        if (app) then
-          local wins = app:allWindows()
-          local counter = 1
-          for j, win in ipairs(wins) do
-            if (win:isVisible() and layout.func) then
-              layout.func(counter, win)
-              counter = counter + 1
-            end
-          end
-        end
-      end
-    elseif (type(layout.name) == "string") then
-      local app = hs.appfinder.appFromName(layout.name)
-      if (app) then
-        local wins = app:allWindows()
-        local counter = 1
-        for j, win in ipairs(wins) do
-          if (win:isVisible() and layout.func) then
-            layout.func(counter, win)
-            counter = counter + 1
-          end
-        end
-      end
-    end
-  end
-end
-
-function hs.screen.get(screen_name)
-  local allScreens = hs.screen.allScreens()
-  for i, screen in ipairs(allScreens) do
-    if screen:name() == screen_name then
-      return screen
-    end
-  end
-end
-
--- Returns the width of the smaller screen size
--- isFullscreen = false removes the toolbar
--- and dock sizes
-function hs.screen.minWidth(isFullscreen)
-  local min_width = math.maxinteger
-  local allScreens = hs.screen.allScreens()
-  for i, screen in ipairs(allScreens) do
-    local screen_frame = screen:frame()
-    if (isFullscreen) then
-      screen_frame = screen:fullFrame()
-    end
-    min_width = math.min(min_width, screen_frame.w)
-  end
-  return min_width
-end
-
--- isFullscreen = false removes the toolbar
--- and dock sizes
--- Returns the height of the smaller screen size
-function hs.screen.minHeight(isFullscreen)
-  local min_height = math.maxinteger
-  local allScreens = hs.screen.allScreens()
-  for i, screen in ipairs(allScreens) do
-    local screen_frame = screen:frame()
-    if (isFullscreen) then
-      screen_frame = screen:fullFrame()
-    end
-    min_height = math.min(min_height, screen_frame.h)
-  end
-  return min_height
-end
-
--- If you are using more than one monitor, returns X
--- considering the reference screen minus smaller screen
--- = (MAX_REFSCREEN_WIDTH - MIN_AVAILABLE_WIDTH) / 2
--- If using only one monitor, returns the X of ref screen
-function hs.screen.minX(refScreen)
-  local min_x = refScreen:frame().x
-  local allScreens = hs.screen.allScreens()
-  if (#allScreens > 1) then
-    min_x = refScreen:frame().x + ((refScreen:frame().w - hs.screen.minWidth()) / 2)
-  end
-  return min_x
-end
-
--- If you are using more than one monitor, returns Y
--- considering the focused screen minus smaller screen
--- = (MAX_REFSCREEN_HEIGHT - MIN_AVAILABLE_HEIGHT) / 2
--- If using only one monitor, returns the Y of focused screen
-function hs.screen.minY(refScreen)
-  local min_y = refScreen:frame().y
-  local allScreens = hs.screen.allScreens()
-  if (#allScreens > 1) then
-    min_y = refScreen:frame().y + ((refScreen:frame().h - hs.screen.minHeight()) / 2)
-  end
-  return min_y
-end
-
--- If you are using more than one monitor, returns the
--- half of minX and 0
--- = ((MAX_REFSCREEN_WIDTH - MIN_AVAILABLE_WIDTH) / 2) / 2
--- If using only one monitor, returns the X of ref screen
-function hs.screen.almostMinX(refScreen)
-  local min_x = refScreen:frame().x
-  local allScreens = hs.screen.allScreens()
-  if (#allScreens > 1) then
-    min_x = refScreen:frame().x + (((refScreen:frame().w - hs.screen.minWidth()) / 2) - ((refScreen:frame().w - hs.screen.minWidth()) / 4))
-  end
-  return min_x
-end
-
--- If you are using more than one monitor, returns the
--- half of minY and 0
--- = ((MAX_REFSCREEN_HEIGHT - MIN_AVAILABLE_HEIGHT) / 2) / 2
--- If using only one monitor, returns the Y of ref screen
-function hs.screen.almostMinY(refScreen)
-  local min_y = refScreen:frame().y
-  local allScreens = hs.screen.allScreens()
-  if (#allScreens > 1) then
-    min_y = refScreen:frame().y + (((refScreen:frame().h - hs.screen.minHeight()) / 2) - ((refScreen:frame().h - hs.screen.minHeight()) / 4))
-  end
-  return min_y
-end
-
--- Returns the frame of the smaller available screen
--- considering the context of refScreen
--- isFullscreen = false removes the toolbar
--- and dock sizes
-function hs.screen.minFrame(refScreen, isFullscreen)
-  return {
-    x = hs.screen.minX(refScreen),
-    y = hs.screen.minY(refScreen),
-    w = hs.screen.minWidth(isFullscreen),
-    h = hs.screen.minHeight(isFullscreen)
-  }
-end
-
--- +-----------------+
--- |        |        |
--- |        |  HERE  |
--- |        |        |
--- +-----------------+
-function hs.window.right(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  minFrame.x = minFrame.x + (minFrame.w/2)
-  minFrame.w = minFrame.w/2
-  win:setFrame(minFrame)
-end
-
--- +-----------------+
--- |        |        |
--- |  HERE  |        |
--- |        |        |
--- +-----------------+
-function hs.window.left(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  minFrame.w = minFrame.w/2
-  win:setFrame(minFrame)
-end
-
--- +-----------------+
--- |      HERE       |
--- +-----------------+
--- |                 |
--- +-----------------+
-function hs.window.up(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  minFrame.h = minFrame.h/2
-  win:setFrame(minFrame)
-end
-
--- +-----------------+
--- |                 |
--- +-----------------+
--- |      HERE       |
--- +-----------------+
-function hs.window.down(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  minFrame.y = minFrame.y + minFrame.h/2
-  minFrame.h = minFrame.h/2
-  win:setFrame(minFrame)
-end
-
--- +-----------------+
--- |  HERE  |        |
--- +--------+        |
--- |                 |
--- +-----------------+
-function hs.window.upLeft(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  minFrame.w = minFrame.w/2
-  minFrame.h = minFrame.h/2
-  win:setFrame(minFrame)
-end
-
--- +-----------------+
--- |                 |
--- +--------+        |
--- |  HERE  |        |
--- +-----------------+
-function hs.window.downLeft(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  win:setFrame({
-    x = minFrame.x,
-    y = minFrame.y + minFrame.h/2,
-    w = minFrame.w/2,
-    h = minFrame.h/2
-  })
-end
-
--- +-----------------+
--- |                 |
--- |        +--------|
--- |        |  HERE  |
--- +-----------------+
-function hs.window.downRight(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  win:setFrame({
-    x = minFrame.x + minFrame.w/2,
-    y = minFrame.y + minFrame.h/2,
-    w = minFrame.w/2,
-    h = minFrame.h/2
-  })
-end
-
--- +-----------------+
--- |        |  HERE  |
--- |        +--------|
--- |                 |
--- +-----------------+
-function hs.window.upRight(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  win:setFrame({
-    x = minFrame.x + minFrame.w/2,
-    y = minFrame.y,
-    w = minFrame.w/2,
-    h = minFrame.h/2
-  })
-end
-
--- +------------------+
--- |                  |
--- |    +--------+    +--> minY
--- |    |  HERE  |    |
--- |    +--------+    |
--- |                  |
--- +------------------+
--- Where the window's size is equal to
--- the smaller available screen size
-function hs.window.fullscreenCenter(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  win:setFrame(minFrame)
-end
-
--- +------------------+
--- |                  |
--- |  +------------+  +--> minY
--- |  |    HERE    |  |
--- |  +------------+  |
--- |                  |
--- +------------------+
-function hs.window.fullscreenAlmostCenter(win)
-  local offsetW = hs.screen.minX(win:screen()) - hs.screen.almostMinX(win:screen())
-  win:setFrame({
-    x = hs.screen.almostMinX(win:screen()),
-    y = hs.screen.minY(win:screen()),
-    w = hs.screen.minWidth(isFullscreen) + (2 * offsetW),
-    h = hs.screen.minHeight(isFullscreen)
-  })
-end
-
--- It like fullscreen but with minY and minHeight values
--- +------------------+
--- |                  |
--- +------------------+--> minY
--- |       HERE       |
--- +------------------+--> minHeight
--- |                  |
--- +------------------+
-function hs.window.fullscreenWidth(win)
-  local minFrame = hs.screen.minFrame(win:screen(), false)
-  win:setFrame({
-    x = win:screen():frame().x,
-    y = minFrame.y,
-    w = win:screen():frame().w,
-    h = minFrame.h
-  })
-end
-
+-- Install:andUse("Hammer",
+--                {
+--                  repo = 'zzspoons',
+--                  config = { auto_reload_config = false },
+--                  hotkeys = {
+--                    config_reload = {mash, "h"},
+--                    toggle_console = {mash, "y"}
+--                  },
+--                  fn = function(s)
+--                    BTT:bindSpoonActions(s,
+--                                         { config_reload = {
+--                                             kind = 'touchbarButton',
+--                                             uuid = "FF8DA717-737F-4C42-BF91-E8826E586FA1",
+--                                             name = "Restart",
+--                                             icon = hs.image.imageFromName(hs.image.systemImageNames.ApplicationIcon),
+--                                             color = hs.drawing.color.x11.orange,
+--                                         }
+--                    })
+--                  end,
+--                  start = true
+--                }
+-- )
+-- 
+-- Install:andUse("Caffeine", {
+--                  start = true,
+--                  hotkeys = {
+--                    toggle = { mash, "0" }
+--                  },
+--                  fn = function(s)
+--                    BTT:bindSpoonActions(s, {
+--                                           toggle = {
+--                                             kind = 'touchbarWidget',
+--                                             uuid = '72A96332-E908-4872-A6B4-8A6ED2E3586F',
+--                                             name = 'Caffeine',
+--                                             widget_code = [[
+-- do
+--   title = " "
+--   icon = hs.image.imageFromPath(spoon.Caffeine.spoonPath.."/caffeine-off.pdf")
+--   if (hs.caffeinate.get('displayIdle')) then
+--     icon = hs.image.imageFromPath(spoon.Caffeine.spoonPath.."/caffeine-on.pdf")
+--   end
+--   print(hs.json.encode({ text = title, icon_data = BTT:hsimageToBTTIconData(icon) }))
+-- end
+--   ]],
+--                                             code = "spoon.Caffeine.clicked()",
+--                                             widget_interval = 1,
+--                                             color = hs.drawing.color.x11.black,
+--                                             icon_only = true,
+--                                             icon_size = hs.geometry.size(15,15),
+--                                             BTTTriggerConfig = {
+--                                               BTTTouchBarFreeSpaceAfterButton = 0,
+--                                               BTTTouchBarItemPadding = -6,
+--                                             },
+--                                           }
+--                    })
+--                  end
+-- })
+-- 
+-- Install:andUse("TimeMachineProgress",
+--                {
+--                  start = true
+--                }
+-- )
+-- 
+-- Install:andUse("FadeLogo",
+--                {
+--                  config = {
+--                    default_run = 1.0,
+--                  },
+--                  start = true
+--                }
+-- )
+-- 
 function applicationWatcher(appName, eventType, appObject)
---  if (eventType == hs.application.watcher.activated) then
---    if (appName == "iTerm") then
---        appObject:selectMenuItem({"Window", "Bring All to Front"})
---    elseif (appName == "Finder") then
---        appObject:selectMenuItem({"Window", "Bring All to Front"})
---    end
---  end
-
-  if (eventType == hs.application.watcher.launched) then
-    os.execute("sleep " .. tonumber(3))
-    applyLayout(layouts, appObject)
+  if (eventType == hs.application.watcher.activated) then
+    if (appName == "Finder") then
+      -- Bring all Finder windows forward when one gets activated
+      appObject:selectMenuItem({"Window", "Bring All to Front"})
+    end
   end
 end
-
-config()
-local appWatcher = hs.application.watcher.new(applicationWatcher)
+appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
+
+
+-- require('vaughan-layout') -- Load Hammerspoon bits from https://github.com/jasonrudolph/keyboard
+
+
+-- vim = hs.loadSpoon('VimMode')
+-- 
+-- -- Basic key binding to ctrl+;
+-- -- You can choose any key binding you want here, see:
+-- --   https://www.hammerspoon.org/docs/hs.hotkey.html#bind
+-- 
+-- hs.hotkey.bind({'ctrl'}, ';', function()
+--   vim:enter()
+-- end)
+-- 
+-- vim:enableKeySequence('j', 'j')
+-- -- sometimes you need to check Activity Monitor to get the app's
+-- -- real name
+-- vim:disableForApp('Code')
+-- vim:disableForApp('iTerm')
+-- vim:disableForApp('MacVim')
+-- vim:disableForApp('Terminal')

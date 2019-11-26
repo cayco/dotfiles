@@ -1,4 +1,5 @@
 # Account Settings -----------------------------------
+#
 
 ## SMTP
 set from="krzysztof.kajkowski@codilime.com"
@@ -22,10 +23,14 @@ set signature="~/.mutt/codilime_sig"
 
 macro index,pager e ":set confirmappend=no delete=yes resolve=no<enter><modify-labels>+archive -unread -inbox -new<enter><clear-flag>N<save-message>=codilime/archive<enter><sync-mailbox>:set confirmappend=yes delete=ask-yes resolve=yes<enter>" "Archive message"
 
+set nm_query_type = threads
+
 unvirtual-mailboxes *
-virtual-mailboxes "CodiLime: Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@codilime.com"
+virtual-mailboxes "CodiLime: Inbox" "notmuch://?query=tag:inbox and not tag:archive and to:krzysztof.kajkowski@codilime.com and not from:grapes@codilime.com and not folder:codilime/Inne"
 virtual-mailboxes "Archiwum 1M" "notmuch://?query=date:last_month.. and to:krzysztof.kajkowski@codilime.com and not from:grapes@codilime.com"
 virtual-mailboxes "Grapes" "notmuch://?query=date:last_month.. and from:grapes@codilime.com"
+virtual-mailboxes "Inne" "notmuch://?query=date:last_month.. and folder:codilime/Inne"
+virtual-mailboxes "DevOps" "notmuch://?query=folder:codilime/DevOps&type=threads"
 virtual-mailboxes "Helpdesk" "notmuch://?query=date:last_month.. and subject:HELP JIRA"
 virtual-mailboxes "Archiwum 2Q17" "notmuch://?query=date:2017-07-01..2017-12-31 and to:krzysztof.kajkowski@codilime.com"
 virtual-mailboxes "Archiwum 1Q17" "notmuch://?query=date:2017-01-01..2017-07-01 and to:krzysztof.kajkowski@codilime.com"

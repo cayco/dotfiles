@@ -84,7 +84,7 @@ set markers=no # don't put '+' at the beginning of wrapped lines
 set pager_index_lines= 10 # how large is the index window?
 set sort = 'threads'
 set sort_aux = 'last-date-received'
-set sort = reverse-date-received
+#set sort = reverse-date-received
 #File browser search
 set sort_browser=reverse-date
 
@@ -116,6 +116,14 @@ macro index S "<enter-command>unset wait_key<enter><shell-escape>~/mutt-notmuch-
 macro compose \e5 "F pandoc -s -f markdown -t html \ny^T^Utext/html; charset=UTF-8\n" 
 set wait_key=no
 
+# Forward without attachments
+macro index f ":set mime_forward=no\n<forward-message>"
+macro pager f ":set mime_forward=no\n<forward-message>"
+
+# Forward with attachments
+macro index F ":set mime_forward=yes\n:set mime_forward_decode=no\n<forward-message>"
+macro pager F ":set mime_forward=yes\n:set mime_forward_decode=no\n<forward-message>"
+
 # vim: set syntax=muttrc:
 # Index Key Bindings ---------------------------------
 bind index gg       first-entry
@@ -145,11 +153,11 @@ set date_format = "%m/%d"
 #
 tag-transforms "inbox"   "i"   \
                "unread"  "u"   \
-               "replied" "↻ "  \
-               "sent"    "➥ "  \
-               "todo"    "T"   \
+               "replied" "↻"  \
+               "sent"    "➥  "  \
+               "todo"    "T  "   \
                "deleted" "DEL" \
-               "archive" "ARCH" \
+               "archive" "A " \
                "invites" "CAL"
 set sort_aux = reverse-last-date-received  # like gmail
 tag-formats "inbox"   "GI" \
@@ -166,7 +174,7 @@ tag-formats "inbox"   "GI" \
 #
 # We replace the date field '%{%b %d}', giving:
 #
-set index_format='%4C %Z %<[y?%<[m?%<[d?%[%H:%M ]&%[%a %d]>&%[%b %d]>&%[%m/%y ]> %-15.15L (%?l?%4l&%4c?)  %?GU?%GU& ? %?GR?%GR& ? %?GA?%GA& ? %?GI?%GI& ? %?GS?%GS& ? %s'
+set index_format='%4C %Z %<[y?%<[m?%<[d?%[%H:%M ]&%[%a %d]>&%[%b %d]>&%[%m/%y ]> %-15.15L (%?l?%4l&%4c?)  %?GU?%GU& ? %?GI?%GI& ? %?GR?%GR& ? %?GS?%GS& ? %s'
 
 set uncollapse_jump                        # don't collapse on an unread message
 set sort_re                                # thread based on regex
@@ -205,9 +213,10 @@ bind pager CO sidebar-open
 
 # easy stwich between acccouts
 bind index L noop
+bind pager L noop
 #macro index LM       "<sidebar-toggle-virtual><change-folder>=codilime/INBOX<enter>" "Go to CodiLime mail"
-macro index LM       "<change-folder>=codilime/INBOX<enter>" "Go to CodiLime mail"
-macro index CM       "<change-folder>=cayco/INBOX<enter>" "Go to cayco mail"
+macro index,pager LM       "<change-folder>=codilime/INBOX<enter>" "Go to CodiLime mail"
+macro index,pager CM       "<change-folder>=cayco/INBOX<enter>" "Go to cayco mail"
 
 
 
@@ -216,7 +225,7 @@ macro index b 'toggle sidebar_visible'
 macro pager b 'toggle sidebar_visible'
  
 # Remap bounce-message function to "B"
-bind pager,pager B resend-message
+bind index,pager B resend-message
 
 # Pager View Options ---------------------------------
 set pager_index_lines = 10 # number of index lines to show
@@ -246,7 +255,7 @@ bind attach <return> view-mailcap#
 bind index,pager Q sidebar-toggle-virtual
 
 set vfolder_format = "%6n(%6N) %f"
-#set nm_default_uri = "notmuch:///Users/krzysztofkajkowski/.mail"
+set nm_default_uri = "notmuch:///Users/krzysztofkajkowski/.mail"
 
 
 # make sure that you are using mutt linked against slang, not ncurses, or

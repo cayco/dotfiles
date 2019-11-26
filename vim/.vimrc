@@ -10,6 +10,20 @@
 
 set nocompatible
 scriptencoding utf-8
+set encoding=utf-8
+
+if has("multi_byte")
+  if &termencoding == ""
+    let &termencoding = &encoding
+  endif
+  set encoding=utf-8
+  setglobal fileencoding=utf-8
+  " Uncomment to have 'bomb' on by default for new files.
+  " Note, this will not apply to the first, empty buffer created at Vim startup.
+  "setglobal bomb
+  set fileencodings=ucs-bom,utf-8,latin1
+endif
+
 filetype plugin indent on  " Load plugins according to detected filetype.
 syntax on                  " Enable syntax highlighting.
 
@@ -77,7 +91,7 @@ Plug 'https://github.com/vim-scripts/YankRing.vim'
 Plug 'honza/vim-snippets'
 Plug 'kana/vim-textobj-user'
 Plug 'sudar/vim-arduino-snippets'
-Plug 'SirVer/ultisnips'
+" Plug 'SirVer/ultisnips'
 Plug 'vim-airline/vim-airline'
 Plug 'lucapette/vim-textobj-underscore' | Plug 'kana/vim-textobj-user'
 Plug 'jceb/vim-textobj-uri'             | Plug 'kana/vim-textobj-user'
@@ -118,6 +132,8 @@ Plug '4Evergreen4/vim-hardy'
 Plug 'jplaut/vim-arduino-ino'
 "Plug 'Valloric/YouCompleteMe'
 "Plug 'weynhamz/vim-plugin-minibufexpl'
+Plug 'vim-pandoc/vim-pandoc-syntax'
+Plug 'vim-pandoc/vim-pandoc'
 
 " Add plugins to &runtimepath
 call plug#end()
@@ -171,7 +187,10 @@ let g:pad#open_in_split = 0
 " Fold and unfold Markdown by space key
 nnoremap <silent> <Space> @=(foldlevel('.')?'za':"\<Space>")<CR>
 vnoremap <Space> zf
-
+if version >= 700
+    set spl=en spell
+    set nospell
+endif
 " Language PL spell check
 set spell spelllang=pl
 
@@ -179,8 +198,8 @@ set nospell
 nnoremap <Leader>s :set spell<CR>
 
 set relativenumber
-call tcomment#DefineType('markdown', '> %s')
-
+"call tcomment#DefineType('markdown', '> %s')
+call tcomment#type#Define('markdown', '> %s')
 set clipboard+=unnamed
 set mouse+=a
 
