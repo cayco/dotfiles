@@ -13,7 +13,7 @@ blueprint:
           - domain:
             - sensor
             - binary_sensor
-  source_url: https://gist.github.com/gigatexel/fb6c10e7202ad4b994aaadd9e82963f1
+  source_url: https://raw.githubusercontent.com/cayco/dotfiles/master/loxone_inputs.yaml
 alias: Update Loxone
 description: ''
 trigger:
