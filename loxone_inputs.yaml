@@ -23,5 +23,5 @@ condition: []
 action:
 - service: rest_command.update_loxone
   data:
-    parameter: '{{ trigger.entity_id.split(''.'')[1]  }}/{{ 0 if states(trigger.to_state.state) == ‘off’ else 1 }}
+    parameter: '{{ trigger.entity_id.split(''.'')[1]  }}/{{ 0 if states(trigger.to_state.state) == "off" else 1 }}'
 mode: parallel
