@@ -13,7 +13,7 @@ blueprint:
           - domain:
             - sensor
             - binary_sensor
-  source_url: https://raw.githubusercontent.com/cayco/dotfiles/master/loxone_inputs.yaml
+  source_url: https://gist.github.com/gigatexel/fb6c10e7202ad4b994aaadd9e82963f1
 alias: Update Loxone
 description: ''
 trigger:
@@ -23,5 +23,5 @@ condition: []
 action:
 - service: rest_command.update_loxone
   data:
-    parameter: '{{ trigger.entity_id.split(''.'')[1]  }}/{{ 0 if states(trigger.to_state.state) == 'off' else 1 }}'
+    parameter: '{{ trigger.entity_id.split(''.'')[1]  }}/{{ trigger.to_state.state  }}'
 mode: parallel
