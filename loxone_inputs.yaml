@@ -13,6 +13,7 @@ blueprint:
           - domain:
             - sensor
             - binary_sensor
+            - switch
   source_url: https://raw.githubusercontent.com/cayco/dotfiles/master/loxone_inputs.yaml
 alias: Update Loxone
 description: ''
