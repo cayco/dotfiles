@@ -1,0 +1,33 @@
+blueprint:
+  name: Home Assistant to Loxone
+  description: Send entity states from Home Assistant to Loxone
+  domain: automation
+  input:
+    target_entities:
+      name: Trigger entities
+      description: List the entities that will be sent to the VI's on the Miniserver
+      selector:
+        entity:
+          multiple: true
+          filter:
+          - domain:
+            - sensor
+            - binary_sensor
+            - switch
+  source_url: https://raw.githubusercontent.com/cayco/dotfiles/master/loxone_inputs.yaml
+alias: Update Loxone
+description: ''
+trigger:
+- platform: state
+  entity_id: !input target_entities
+condition: []
+action:
+- service: rest_command.update_loxone
+  data:
+    parameter: >-
+        {{ trigger.entity_id.split('.')[1]  }}/{% if trigger.to_state.state ==
+        "off" %}0{% elif trigger.to_state.state == "on" %}1{%elif
+        trigger.to_state.state == "single_left"%}1/0/0/0/0{%elif
+        trigger.to_state.state == "single_right"%}0/1/0/0/0{% else %}{{
+        trigger.to_state.state }}{% endif %}
+mode: parallel
