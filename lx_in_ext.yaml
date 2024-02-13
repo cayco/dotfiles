@@ -1,5 +1,5 @@
 blueprint:
-  name: Home Assistant to Loxone
+  name: experimental Home Assistant to Loxone
   description: Send entity states from Home Assistant to Loxone
   domain: automation
   input:
