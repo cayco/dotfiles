@@ -118,6 +118,11 @@ zstyle ':prompt:pure:prompt:*' color cyan
 zstyle :prompt:pure:git:stash show yes
 prompt pure
 alias vim='nvim'
+
+# Load custom aliases
+if [ -f ~/.aliases ]; then
+  source ~/.aliases
+fi
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
 
