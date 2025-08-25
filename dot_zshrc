@@ -122,7 +122,7 @@ zstyle ':prompt:pure:prompt:*' color cyan
 
 # turn on git stash status
 zstyle :prompt:pure:git:stash show yes
-prompt pure
+#prompt pure
 alias vim='nvim'
 
 # Load custom aliases
