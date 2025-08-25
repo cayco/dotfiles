@@ -1,3 +1,6 @@
+set mouse=a
+
+
 " Shift hjkl right by one, wrapping ; → h
 nnoremap j h
 nnoremap k j
