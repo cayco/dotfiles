@@ -21,10 +21,10 @@ alias ....="cd ../../.."
 alias .....="cd ../../../.."
 alias -- -="cd -"
 
-alias cpl chezmoi pull
-alias cap chezmoi apply
-alias ced chezmoi edit
-alias cad chezmoi add
+alias cpl="chezmoi pull"
+alias cap="chezmoi apply"
+alias ced="chezmoi edit"
+alias cad="chezmoi add"
 
 # Include custom aliases
 if [[ -f ~/.aliases.local ]]; then
