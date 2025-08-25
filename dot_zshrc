@@ -1,5 +1,3 @@
-typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
-
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -112,7 +110,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # .zshrc
-autoload -U promptinit; promptinit
+#autoload -U promptinit; promptinit
 # optionally define some options
 PURE_CMD_MAX_EXEC_TIME=10
 
