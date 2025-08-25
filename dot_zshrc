@@ -126,4 +126,4 @@ fi
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
 
-eval "$(fzf --zsh)"
+source <(fzf --zsh)
