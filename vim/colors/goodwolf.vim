@@ -1,1 +1,0 @@
-/Users/cayco/.vim/colors/badwolf/colors/goodwolf.vim
