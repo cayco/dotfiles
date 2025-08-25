@@ -120,8 +120,8 @@ prompt pure
 alias vim='nvim'
 
 # Load custom aliases
-if [ -f ~/.aliases ]; then
-  source ~/.aliases
+if [ -f ~/aliases ]; then
+  source ~/aliases
 fi
 export EDITOR="nvim"
 export VISUAL="$EDITOR"
