@@ -1,2 +1,5 @@
 vim/files/
 vim/plugged/
+.config/raycast
+.DS_Store
+lock
