@@ -13,6 +13,8 @@ onoremap k j
 onoremap l k
 onoremap ; l
 
+syntax on
+
 set encoding=utf-8
 
 " Leader
