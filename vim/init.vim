@@ -1,1 +1,0 @@
-/Users/cayco/.vimrc
