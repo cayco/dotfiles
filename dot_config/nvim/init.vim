@@ -18,6 +18,7 @@ onoremap l k
 onoremap ; l
 
 set encoding=utf-8
+syntax on
 
 " Leader
 let mapleader = " "
