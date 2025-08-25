@@ -1,1 +1,0 @@
-/Users/cayco/.vim/colors/Zenburn/colors/zenburn.vim
