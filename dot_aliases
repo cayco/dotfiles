@@ -25,6 +25,7 @@ alias cpl="chezmoi pull"
 alias cap="chezmoi apply"
 alias ced="chezmoi edit"
 alias cad="chezmoi add"
+alias cup="chezmoi update"
 
 # Include custom aliases
 if [[ -f ~/.aliases.local ]]; then
