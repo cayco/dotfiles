@@ -9,7 +9,7 @@
 # so it won't be run twice on AeroSpace restart
 after-startup-command = ['exec-and-forget sketchybar',
   'exec-and-forget borders active_color=0xffe1e3e4 inactive_color=0xff494d64 width=5.0',
-  '~/.config/aerospace/load_laout.sh'
+  'exec-and-forget ~/.config/aerospace/load_laout.sh'
 ]
 
 # Notify Sketchybar about workspace change
