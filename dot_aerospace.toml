@@ -219,3 +219,6 @@ automatically-unhide-macos-hidden-apps = false
 if.app-name-regex-substring = 'finder'
 run = 'layout floating'
 
+if.app-name-regex-substring = 'bitwarden'
+run = 'layout floating'
+
