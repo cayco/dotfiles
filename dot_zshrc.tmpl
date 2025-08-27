@@ -157,7 +157,25 @@ export NVM_DIR="$HOME/.nvm"
 # ---- FZF -----
 
 # Set up fzf key bindings and fuzzy completion
+
+
+
+{{ if eq .chezmoi.os "darwin" }}
+# darwin
+source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 eval "$(fzf --zsh)"
+{{ else if eq .chezmoi.os "linux" }}
+# linux
+source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+# Integracja fzf ze starszymi wersjami (< 0.48.0)
+[ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+[ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
+
+{{ else }}
+# other operating system
+{{ end }}
+
+
 
 # --- setup fzf theme ---
 fg="#CBE0F0"
@@ -238,13 +256,3 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
-
-{{ if eq .chezmoi.os "darwin" }}
-# darwin
-source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
-{{ else if eq .chezmoi.os "linux" }}
-# linux
-source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-{{ else }}
-# other operating system
-{{ end }}
