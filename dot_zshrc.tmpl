@@ -166,7 +166,7 @@ source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
 eval "$(fzf --zsh)"
 {{ else if eq .chezmoi.os "linux" }}
 # linux
-source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k/powerlevel10k.zsh-theme
 # Integracja fzf ze starszymi wersjami (< 0.48.0)
 [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
 [ -f /usr/share/doc/fzf/examples/completion.zsh ] && source /usr/share/doc/fzf/examples/completion.zsh
