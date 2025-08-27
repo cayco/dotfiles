@@ -1,0 +1,33 @@
+{{ if eq .chezmoi.os "linux" -}}
+#!/bin/sh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+git clone --depth=1 https://github.com/romkatv/powerlevel10k-media.git ~/powerlevel10k-media
+sudo mkdir -p /usr/share/fonts/truetype/meslo
+sudo cp ~/powerlevel10k-media/*.ttf /usr/share/fonts/truetype/meslo/
+sudo fc-cache -fv
+wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc \
+| sudo gpg --dearmor -o /etc/apt/keyrings/eza.gpg
+echo "deb [signed-by=/etc/apt/keyrings/eza.gpg] http://deb.gierens.de stable main" \
+| sudo tee /etc/apt/sources.list.d/eza.list
+sudo apt update
+sudo apt install -y eza bat fzf sudo git neovim zsh fonts-powerline thefuck zoxide
+{{ else if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# macOS installation
+if ! command -v brew &> /dev/null; then
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Find Brewfile location
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_DIR="$(dirname "$SCRIPT_DIR")"
+BREWFILE="$REPO_DIR/Brewfile"
+
+# If Brewfile doesn't exist, try Brewfile.tmpl
+if [[ ! -f "$BREWFILE" ]]; then
+BREWFILE="$REPO_DIR/Brewfile.tmpl"
+fi
+
+brew bundle --file="$BREWFILE" --verbose
+{{ end -}}

@@ -35,6 +35,12 @@ set laststatus=2  " Always display the status line
 set autowrite     " Automatically :write before running commands
 set modelines=0   " Disable modelines as a security precaution
 set nomodeline
+" Włącz automatyczne wcięcia i rozpoznawanie plik-type
+filetype plugin indent on
+set autoindent
+set smartindent
+" Maksymalna szerokość tekstu to 80 znaków
+set textwidth=80
 
 " Switch syntax highlighting on, when the terminal has colors
 " Also switch on highlighting the last used search pattern.
