@@ -240,4 +240,13 @@ function y() {
 	fi
 	rm -f -- "$tmp"
 }
+
+{{ if eq .chezmoi.os "darwin" }}
+# darwin
 source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+{{ else if eq .chezmoi.os "linux" }}
+# linux
+source ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+{{ else }}
+# other operating system
+{{ end }}
