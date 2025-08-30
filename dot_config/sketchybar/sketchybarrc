@@ -301,7 +301,7 @@ sketchybar -m --add item vpn right \
 sketchybar --add item weather.icon right \
            --set weather.icon update_freq=1800 \
            --set weather.icon script="$HOME/.config/sketchybar/plugins/weather.sh icon" \
-           --set weather.icon click_script="open -a 'MenuBar Weather'" \
+           --set weather.icon click_script="open -a 'Weather'" \
            --set weather.icon label.drawing=off \
            --set weather.icon icon.font="SF Pro Display:Bold:16.0" \
            --set weather.icon icon.color=0xffffffff \
@@ -312,7 +312,7 @@ sketchybar --add item weather.icon right \
 sketchybar --add item weather.temp right \
            --set weather.temp update_freq=1800 \
            --set weather.temp script="$HOME/.config/sketchybar/plugins/weather.sh temp" \
-           --set weather.temp click_script="open -a 'MenuBar Weather'" \
+           --set weather.temp click_script="open -a 'Weather'" \
            --set weather.temp icon.drawing=off \
            --set weather.temp label.font="SF Pro Display:Medium:14.0" \
            --set weather.temp label.color=0xffffffff \
