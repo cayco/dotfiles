@@ -1,148 +1,79 @@
 {{- /* +x */ -}}
 #!/usr/bin/env bash
-# rest of your template…
 
-#!/bin/bash
+# Configuration
+LOCATION="{{ .chezmoi.hostname }}"   # replace with fixed name if you prefer
+CACHE_DIR="$HOME/.config/sketchybar/cache"
+CACHE_FILE="$CACHE_DIR/weather_cache.html"
+CACHE_DURATION=1800   # 30 minutes
 
-# Cache settings
-CACHE_FILE="$HOME/.config/sketchybar/cache/weather_cache"
-CACHE_DURATION=1800  # 30 minutes
-CACHE_DIR="$(dirname "$CACHE_FILE")"
+# Ensure cache directory exists
+mkdir -p "$CACHE_DIR"
 
-# Create cache directory if it doesn't exist
-[[ ! -d "$CACHE_DIR" ]] && mkdir -p "$CACHE_DIR"
-
-# Weather icon mapping for wttr.in weather codes
-get_weather_icon() {
-    local condition="$1"
-    case "$condition" in
-        # Clear/Sunny
-        *"Clear"*|*"Sunny"*) echo "☀️" ;;
-        # Partly Cloudy
-        *"Partly cloudy"*|*"Partly Cloudy"*) echo "⛅" ;;
-        # Cloudy/Overcast
-        *"Cloudy"*|*"Overcast"*|*"Fog"*|*"Mist"*) echo "☁️" ;;
-        # Rain variants
-        *"Light rain"*|*"Patchy rain"*|*"Light drizzle"*) echo "🌦️" ;;
-        *"Rain"*|*"Heavy rain"*|*"Moderate rain"*) echo "🌧️" ;;
-        # Snow variants
-        *"Light snow"*|*"Patchy snow"*) echo "🌨️" ;;
-        *"Snow"*|*"Heavy snow"*|*"Blizzard"*) echo "❄️" ;;
-        # Thunderstorm
-        *"Thunder"*|*"storm"*) echo "⛈️" ;;
-        # Default
-        *) echo "🌤️" ;;
-    esac
+# Fetch HTML if cache expired or missing
+fetch_html() {
+  local url="https://wttr.in/${LOCATION}?m&lang=en"
+  if curl -s --max-time 10 "$url" -o "$CACHE_FILE"; then
+    return 0
+  else
+    return 1
+  fi
 }
 
-LOCATION="waw"  # Replace with your city
-
-# Then modify the fetch_weather function:
-fetch_weather() {
-    local weather_data
-    local url="wttr.in"
-    
-    # Add location if specified
-    if [[ -n "$LOCATION" ]]; then
-        url="$url/$LOCATION"
+# Load HTML (fresh or cached)
+load_html() {
+  if [[ -f "$CACHE_FILE" ]]; then
+    local modified=$(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE")
+    local age=$(( $(date +%s) - modified ))
+    if (( age < CACHE_DURATION )); then
+      return 0
     fi
-    
-    weather_data=$(curl -s --max-time 10 "$url?format=%C,%t" 2>/dev/null)
-    
-    if [[ $? -eq 0 && -n "$weather_data" ]]; then
-        echo "$weather_data" > "$CACHE_FILE"
-        return 0
-    else
-        return 1
-    fi
+  fi
+  fetch_html || return 0
 }
 
-
-# Function to fetch weather data
-fetch_weather() {
-    local weather_data
-    weather_data=$(curl -s --max-time 10 "wttr.in/?format=%C,%t" 2>/dev/null)
-    
-    if [[ $? -eq 0 && -n "$weather_data" ]]; then
-        echo "$weather_data" > "$CACHE_FILE"
-        return 0
-    else
-        return 1
-    fi
+# Parse temperature (e.g. “+23°C” or “–02°C”)
+parse_temp() {
+  grep -oP '(?<=<span class="temp">)[^<]+' "$CACHE_FILE" | head -1
 }
 
-# Function to get cached or fresh weather data
-get_weather_data() {
-    local current_time=$(date +%s)
-    
-    # Check if cache exists and is still valid
-    if [[ -f "$CACHE_FILE" ]]; then
-        local cache_time=$(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE" 2>/dev/null)
-        local cache_age=$((current_time - cache_time))
-        
-        if [[ $cache_age -lt $CACHE_DURATION ]]; then
-            # Use cached data
-            cat "$CACHE_FILE"
-            return 0
-        fi
-    fi
-    
-    # Fetch fresh data
-    if fetch_weather; then
-        cat "$CACHE_FILE"
-        return 0
-    elif [[ -f "$CACHE_FILE" ]]; then
-        # Use old cache if fetch fails
-        cat "$CACHE_FILE"
-        return 0
-    else
-        # No data available
-        return 1
-    fi
+# Parse icon description and map to Unicode
+parse_icon() {
+  local desc
+  desc=$(grep -oP '(?<=<span class="weather-icon" title=")[^"]+' "$CACHE_FILE" | head -1)
+  case "$desc" in
+    *Sunny*|*Clear*)       echo "☀️" ;;
+    *Partly*|*Cloudy*)     echo "⛅" ;;
+    *Overcast*|*Clouds*)   echo "☁️" ;;
+    *Mist*|*Fog*)          echo "🌫️" ;;
+    *Drizzle*|*Rain*|*Showers*) echo "🌧️" ;;
+    *Thunder*|*Storm* )    echo "⛈️" ;;
+    *Snow*|*Sleet* )       echo "❄️" ;;
+    *)                      echo "🌤️" ;;
+  esac
 }
 
-# Main script logic
+# Main
 MODE="${1:-both}"
+load_html || true
 
-# Get weather data
-WEATHER_DATA=$(get_weather_data)
+TEMP=$(parse_temp)
+ICON=$(parse_icon)
 
-if [[ -n "$WEATHER_DATA" ]]; then
-    # Parse the data (format: "Condition,Temperature")
-    IFS=',' read -r CONDITION TEMP <<< "$WEATHER_DATA"
-    
-    # Clean up the data
-    CONDITION=$(echo "$CONDITION" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-    TEMP=$(echo "$TEMP" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-    
-    # Get weather icon
-    ICON=$(get_weather_icon "$CONDITION")
-    
-    case "$MODE" in
-        "icon")
-            sketchybar --set weather.icon icon="$ICON"
-            ;;
-        "temp")
-            sketchybar --set weather.temp label="$TEMP"
-            ;;
-        "both"|*)
-            sketchybar --set weather.icon icon="$ICON" \
-                       --set weather.temp label="$TEMP"
-            ;;
-    esac
+if [[ -n "$TEMP" && -n "$ICON" ]]; then
+  case "$MODE" in
+    icon) sketchybar --set weather.icon icon="$ICON" ;;
+    temp) sketchybar --set weather.temp label="$TEMP" ;;
+    *)    sketchybar --set weather.icon icon="$ICON" \
+                     --set weather.temp label="$TEMP" ;;
+  esac
 else
-    # Handle error case
-    case "$MODE" in
-        "icon")
-            sketchybar --set weather.icon icon="❓"
-            ;;
-        "temp")
-            sketchybar --set weather.temp label="--"
-            ;;
-        "both"|*)
-            sketchybar --set weather.icon icon="❓" \
-                       --set weather.temp label="--"
-            ;;
-    esac
+  # Fallback
+  case "$MODE" in
+    icon) sketchybar --set weather.icon icon="❓" ;;
+    temp) sketchybar --set weather.temp label="--" ;;
+    *)    sketchybar --set weather.icon icon="❓" \
+                     --set weather.temp label="--" ;;
+  esac
 fi
 
