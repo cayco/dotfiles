@@ -31,6 +31,29 @@ get_weather_icon() {
     esac
 }
 
+LOCATION="Warsaw"  # Replace with your city
+
+# Then modify the fetch_weather function:
+fetch_weather() {
+    local weather_data
+    local url="wttr.in"
+    
+    # Add location if specified
+    if [[ -n "$LOCATION" ]]; then
+        url="$url/$LOCATION"
+    fi
+    
+    weather_data=$(curl -s --max-time 10 "$url?format=%C,%t" 2>/dev/null)
+    
+    if [[ $? -eq 0 && -n "$weather_data" ]]; then
+        echo "$weather_data" > "$CACHE_FILE"
+        return 0
+    else
+        return 1
+    fi
+}
+
+
 # Function to fetch weather data
 fetch_weather() {
     local weather_data
