@@ -1,53 +1,31 @@
 {{- /* +x */ -}}
 #!/usr/bin/env bash
 
-LOCATION="{{ .chezmoi.hostname }}"   # or hard-code "Warsaw"
+LOCATION="{{ .chezmoi.hostname }}"
 CACHE_DIR="$HOME/.config/sketchybar/cache"
-CACHE_FILE="$CACHE_DIR/weather_raw.txt"
+CACHE_FILE="$CACHE_DIR/weather_T.txt"
 CACHE_DURATION=1800  # 30 minutes
 
 mkdir -p "$CACHE_DIR"
 
-fetch_raw() {
-  curl -s --max-time 10 "wttr.in/${LOCATION}?m" -o "$CACHE_FILE"
+fetch_T() {
+  curl -s --max-time 10 "wttr.in/${LOCATION}?T" -o "$CACHE_FILE"
 }
 
-load_raw() {
+load_T() {
   if [[ -f "$CACHE_FILE" ]]; then
     mod=$(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE")
     age=$(( $(date +%s) - mod ))
     (( age < CACHE_DURATION )) && return
   fi
-  fetch_raw
+  fetch_T
 }
 
-map_icon() {
-  local d="$1"
-  case "$d" in
-    Clear|Sunny)       echo "☀️" ;;
-    Partly*|Cloudy)    echo "⛅" ;;
-    Overcast|Clouds)   echo "☁️" ;;
-    Mist|Fog)          echo "🌫️" ;;
-    Drizzle|Rain*|Showers*) echo "🌧️" ;;
-    Thunder*|Storm*)   echo "⛈️" ;;
-    Snow*|Sleet*)      echo "❄️" ;;
-    *)                 echo "🌤️" ;;
-  esac
-}
-
-# Main
 MODE="${1:-both}"
-load_raw
+load_T
 
-RAW=$(<"$CACHE_FILE")
-
-# Extract description: the first line containing “\   /”
-DESC=$(echo "$RAW" | awk '/\\   \//{print $NF; exit}')
-
-# Extract temperature: look for “+31°C” or “-02°C”
-TEMP=$(echo "$RAW" | grep -oE '[+-][0-9]{1,2}°C' | head -1)
-
-ICON=$(map_icon "$DESC")
+# Read the two tokens: ICON and TEMP
+read -r ICON TEMP < "$CACHE_FILE"
 
 if [[ -n "$ICON" && -n "$TEMP" ]]; then
   case "$MODE" in
