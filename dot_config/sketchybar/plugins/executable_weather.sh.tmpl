@@ -31,28 +31,25 @@ load_html() {
   fi
   fetch_html || return 0
 }
-
-# Parse temperature (e.g. “+23°C” or “–02°C”)
 parse_temp() {
-  grep -oP '(?<=<span class="temp">)[^<]+' "$CACHE_FILE" | head -1
+  sed -n 's/.*<span class="temp">\([^<]*\)<\/span>.*/\1/p' "$CACHE_FILE" | head -1
 }
 
 # Parse icon description and map to Unicode
 parse_icon() {
   local desc
-  desc=$(grep -oP '(?<=<span class="weather-icon" title=")[^"]+' "$CACHE_FILE" | head -1)
+  desc=$(sed -n 's/.*<span class="weather-icon" title="\([^"]*\)".*/\1/p' "$CACHE_FILE" | head -1)
   case "$desc" in
-    *Sunny*|*Clear*)       echo "☀️" ;;
-    *Partly*|*Cloudy*)     echo "⛅" ;;
-    *Overcast*|*Clouds*)   echo "☁️" ;;
-    *Mist*|*Fog*)          echo "🌫️" ;;
+    *Sunny*|*Clear*)         echo "☀️" ;;
+    *Partly*|*Cloudy*)       echo "⛅" ;;
+    *Overcast*|*Clouds*)     echo "☁️" ;;
+    *Mist*|*Fog*)            echo "🌫️" ;;
     *Drizzle*|*Rain*|*Showers*) echo "🌧️" ;;
-    *Thunder*|*Storm* )    echo "⛈️" ;;
-    *Snow*|*Sleet* )       echo "❄️" ;;
-    *)                      echo "🌤️" ;;
+    *Thunder*|*Storm*)       echo "⛈️" ;;
+    *Snow*|*Sleet*)          echo "❄️" ;;
+    *)                        echo "🌤️" ;;
   esac
 }
-
 # Main
 MODE="${1:-both}"
 load_html || true
