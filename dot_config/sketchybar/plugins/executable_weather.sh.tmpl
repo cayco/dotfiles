@@ -1,65 +1,55 @@
 {{- /* +x */ -}}
 #!/usr/bin/env bash
 
-# Configuration
-LOCATION="{{ .chezmoi.hostname }}"   # replace with fixed name if you prefer
+LOCATION="{{ .chezmoi.hostname }}"   # or hard-code "Warsaw"
 CACHE_DIR="$HOME/.config/sketchybar/cache"
-CACHE_FILE="$CACHE_DIR/weather_cache.html"
-CACHE_DURATION=1800   # 30 minutes
+CACHE_FILE="$CACHE_DIR/weather_raw.txt"
+CACHE_DURATION=1800  # 30 minutes
 
-# Ensure cache directory exists
 mkdir -p "$CACHE_DIR"
 
-# Fetch HTML if cache expired or missing
-fetch_html() {
-  local url="https://wttr.in/${LOCATION}?m&lang=en"
-  if curl -s --max-time 10 "$url" -o "$CACHE_FILE"; then
-    return 0
-  else
-    return 1
-  fi
+fetch_raw() {
+  curl -s --max-time 10 "wttr.in/${LOCATION}?m" -o "$CACHE_FILE"
 }
 
-# Load HTML (fresh or cached)
-load_html() {
+load_raw() {
   if [[ -f "$CACHE_FILE" ]]; then
-    local modified=$(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE")
-    local age=$(( $(date +%s) - modified ))
-    if (( age < CACHE_DURATION )); then
-      return 0
-    fi
+    mod=$(stat -f %m "$CACHE_FILE" 2>/dev/null || stat -c %Y "$CACHE_FILE")
+    age=$(( $(date +%s) - mod ))
+    (( age < CACHE_DURATION )) && return
   fi
-  fetch_html || return 0
-}
-# Parse temperature (e.g. “+23°C” or “–02°C”)
-parse_temp() {
-  ggrep -Po '(?<=<span class="temp">)[^<]+' "$CACHE_FILE" | head -1
+  fetch_raw
 }
 
-# Parse icon description and map to Unicode
-parse_icon() {
-  local desc
-  desc=$(ggrep -Po '(?<=<span class="weather-icon" title=")[^"]+' "$CACHE_FILE" | head -1)
-  case "$desc" in
-    *Sunny*|*Clear*)         echo "☀️" ;;
-    *Partly*|*Cloudy*)       echo "⛅" ;;
-    *Overcast*|*Clouds*)     echo "☁️" ;;
-    *Mist*|*Fog*)            echo "🌫️" ;;
-    *Drizzle*|*Rain*|*Showers*) echo "🌧️" ;;
-    *Thunder*|*Storm*)       echo "⛈️" ;;
-    *Snow*|*Sleet*)          echo "❄️" ;;
-    *)                        echo "🌤️" ;;
+map_icon() {
+  local d="$1"
+  case "$d" in
+    Clear|Sunny)       echo "☀️" ;;
+    Partly*|Cloudy)    echo "⛅" ;;
+    Overcast|Clouds)   echo "☁️" ;;
+    Mist|Fog)          echo "🌫️" ;;
+    Drizzle|Rain*|Showers*) echo "🌧️" ;;
+    Thunder*|Storm*)   echo "⛈️" ;;
+    Snow*|Sleet*)      echo "❄️" ;;
+    *)                 echo "🌤️" ;;
   esac
 }
 
 # Main
 MODE="${1:-both}"
-load_html || true
+load_raw
 
-TEMP=$(parse_temp)
-ICON=$(parse_icon)
+RAW=$(<"$CACHE_FILE")
 
-if [[ -n "$TEMP" && -n "$ICON" ]]; then
+# Extract description: the first line containing “\   /”
+DESC=$(echo "$RAW" | awk '/\\   \//{print $NF; exit}')
+
+# Extract temperature: look for “+31°C” or “-02°C”
+TEMP=$(echo "$RAW" | grep -oE '[+-][0-9]{1,2}°C' | head -1)
+
+ICON=$(map_icon "$DESC")
+
+if [[ -n "$ICON" && -n "$TEMP" ]]; then
   case "$MODE" in
     icon) sketchybar --set weather.icon icon="$ICON" ;;
     temp) sketchybar --set weather.temp label="$TEMP" ;;
@@ -67,7 +57,6 @@ if [[ -n "$TEMP" && -n "$ICON" ]]; then
                      --set weather.temp label="$TEMP" ;;
   esac
 else
-  # Fallback
   case "$MODE" in
     icon) sketchybar --set weather.icon icon="❓" ;;
     temp) sketchybar --set weather.temp label="--" ;;
