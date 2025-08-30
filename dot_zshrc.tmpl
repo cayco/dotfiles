@@ -169,8 +169,13 @@ export NVM_DIR="$HOME/.nvm"
 
 {{ if eq .chezmoi.os "darwin" }}
 # darwin
-source /opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
-source /Users/{{ .chezmoi.username }}/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme
+if [[ -r "/opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme" ]]; then
+  source "/opt/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme"
+fi
+if [[ -r "/Users/{{ .chezmoi.username }}/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme" ]]; then
+  source "/Users/{{ .chezmoi.username }}/homebrew/share/powerlevel10k/powerlevel10k.zsh-theme"
+fi
+
 eval "$(fzf --zsh)"
 {{ else if eq .chezmoi.os "linux" }}
 # linux
