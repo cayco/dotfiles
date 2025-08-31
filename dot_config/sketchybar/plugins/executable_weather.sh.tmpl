@@ -9,7 +9,7 @@ CACHE_DURATION=1800  # 30 minutes
 mkdir -p "$CACHE_DIR"
 
 fetch_T() {
-  curl -s --max-time 10 "wttr.in/${LOCATION}?T" -o "$CACHE_FILE"
+  curl -s --max-time 10 "wttr.in/${LOCATION}?nonce=$RANDOM&format=%c+%t" -o "$CACHE_FILE"
 }
 
 load_T() {
