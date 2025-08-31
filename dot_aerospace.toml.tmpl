@@ -68,11 +68,10 @@ automatically-unhide-macos-hidden-apps = false
     outer.bottom =    5 
 #    outer.top =       35 
     outer.right =     5 
-# Query AeroSpace for the focused monitor name and adjust outer.top accordingly
-{{- $out := exec "aerospace" "list-monitors" "--focused" "--format" "%{monitor-name}" -}}
-{{- $primary := split $out "\n" | index 0 | trim -}}
-
-    outer.top = {{ if eq $primary "Built-in Retina Display" }}5{{ else }}14{{ end }}
+    outer.top = [
+  { monitor."Built-In Retina Display" = 5 },
+  35
+]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
