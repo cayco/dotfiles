@@ -12,9 +12,9 @@ after-startup-command = ['exec-and-forget sketchybar',
   'exec-and-forget ~/.config/aerospace/load_laout.sh'
 ]
 
-# Notify Sketchybar about workspace change
+# Notify Sketchybar about workspace change and flush AeroSpace closedWindowsCache
 exec-on-workspace-change = ['/bin/bash', '-c',
-    'sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
+    '/opt/homebrew/bin/aerospace eval true; sketchybar --trigger aerospace_workspace_change FOCUSED_WORKSPACE=$AEROSPACE_FOCUSED_WORKSPACE'
 ]
 # Start AeroSpace at login
 start-at-login = true 
@@ -44,6 +44,11 @@ default-root-container-orientation = 'auto'
 # See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
 # Fallback value (if you omit the key): on-focused-monitor-changed = []
 on-focused-monitor-changed = ['move-mouse monitor-lazy-center']
+
+# Flush AeroSpace's closedWindowsCache on every focus change via a pure no-op command
+# that has shouldResetClosedWindowsCache = true (--window-id 0 never matches any window,
+# so no window/layout/floating size is ever touched, but Shell<Command>.run resets closedWindowsCache)
+on-focus-changed = ['move-node-to-workspace --window-id 0 1']
 
 # You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
 # Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-ctrl-h key
