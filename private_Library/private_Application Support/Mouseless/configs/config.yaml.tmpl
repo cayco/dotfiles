@@ -7,7 +7,7 @@ behavior_configs:
   free_mode_auto_off_s: 10
   grid_action_level: subgrid
   hide_cursor_on_click: false
-  hide_location: top_left
+  hide_location: {{ if eq .chezmoi.hostname "Mac-Studio-187" }}top_left{{ else }}bottom_left{{ end }}
   initial_action_location: system_cursor
   initial_overlay_monitor: with_mouse
   label_chars: ASDFGHJKLXCVBN
