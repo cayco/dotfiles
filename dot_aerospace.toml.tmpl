@@ -26,7 +26,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
 # The 'accordion-padding' specifies the size of accordion padding
 # You can set 0 to disable the padding feature
-accordion-padding = 30
+accordion-padding = 0
 
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
@@ -64,12 +64,12 @@ automatically-unhide-macos-hidden-apps = false
 #                 See:
 #                 https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-    inner.horizontal =5 
-    inner.vertical =  5 
-    outer.left =      5 
-    outer.bottom =    5 
+    inner.horizontal = 5
+    inner.vertical =   5
+    outer.left =       0
+    outer.bottom =     0
 #    outer.top =       35 
-    outer.right =     5 
+    outer.right =      0
     outer.top = [
   { monitor."Built-In Retina Display" = 5 },
   35
@@ -227,5 +227,13 @@ run = 'layout floating'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'com.bitwarden.desktop'
+run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.googlecode.iterm2'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.MobileSMS'
 run = 'layout floating'
 
