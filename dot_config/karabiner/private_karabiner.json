@@ -6,6 +6,7 @@
                 "rules": [
                     {
                         "description": "Sunaku-style Home Row Mods (GACS order)",
+                        "enabled": false,
                         "manipulators": [
                             {
                                 "description": "d key -> GUI when held, d when tapped",
