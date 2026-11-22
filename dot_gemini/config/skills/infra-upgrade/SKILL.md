@@ -37,7 +37,7 @@ Execute only the stages that have approved updates, and **run `ssh prox 'cayco-u
 4. **Stage 4 — Identity, DNS, PKI & Edge Tunnel (Before Any OIDC App!)**:
    - `CT 105 adguard` -> `CT 117 pki` -> `CT 118 ingress-sso` (pre-validate `authelia validate-config` before stopping `authelia`!) -> `CT 110 vaultwarden` (`/usr/local/bin/update-vaultwarden`).
 5. **Stage 5 — Upstream App Backends (`dokerz` & LXCs)**:
-   - `cayco-upgrade snap 100` -> `dokerz` stacks (verify `qBittorrent WireGuard VPN and Killswitch` 5-layer check!) -> `CT 121 frigate` (must precede HA `custom_components/frigate`!) -> LXC apps (`111 immich`, `112 paperless`, `119 mealie`, `120 bookorbit` checking JS `sed` targets, `102 archive`, `122 wrapvm`, `101 plex`, `107 loxone-llm`).
+   - `cayco-upgrade snap 100` -> `dokerz` stacks (verify `qBittorrent WireGuard VPN and Killswitch` 5-layer check!) -> `CT 121 frigate` (must precede HA `custom_components/frigate`!) -> LXC apps (`112 paperless`, `119 mealie`, `120 bookorbit` checking JS `sed` targets, `102 archive`, `122 wrapvm`, `101 plex`, `107 loxone-llm`).
    - **`VM 104 music4home` rule**: OS `Debian-Security` patches ONLY (`cayco-upgrade snap 104`); **NEVER** upgrade MS4H `/opt/music_server` or `logitechmediaserver` (`apt-mark hold`).
 6. **Stage 6 — Home Assistant (`VM 103 haos12.0` — `.2+` Core Releases Only, `Zigbee2MQTT` LAST!)**:
    - `cayco-upgrade snap 103` -> HACS integrations (note: `custom_components/fordpass` stays untouched upstream via `fordpass_raptor_fix` sidecar!) -> `MariaDB` -> `EMQX` -> `NUT` -> `HA Core (.2+)` -> `HAOS` reboot -> **`Zigbee2MQTT` (`45df7312_zigbee2mqtt`) updated/restarted LAST** once `EMQX` and `HA Core` are online!
