@@ -1,3 +1,7 @@
 {{ if ne .chezmoi.hostname "Mac-Studio-187" -}}
 Library/LaunchAgents/com.cayco.cmk-agy-handoff.plist
 {{ end -}}
+{{ if ne .chezmoi.os "darwin" -}}
+Library/LaunchAgents/com.cayco.chezmoi-sync.plist
+.config/chezmoi/chezmoi_auto_sync.sh
+{{ end -}}

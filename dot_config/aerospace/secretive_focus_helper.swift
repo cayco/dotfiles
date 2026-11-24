@@ -84,6 +84,10 @@ final class SecretiveFocusManager {
             let bid = app.bundleIdentifier ?? ""
             if nativeAuthBundleIds.contains(bid) {
                 self.lastNativeAuthSeenTime = CFAbsoluteTimeGetCurrent()
+                if watchedBundleIds.contains(bid) {
+                    self.registerWatchedApp(pid: app.processIdentifier, bundleId: bid, triggerPresentation: false)
+                    self.scheduleInitialPresentation(forPid: app.processIdentifier)
+                }
             } else if !watchedBundleIds.contains(bid) {
                 self.lastActiveRegularPid = app.processIdentifier
             }
@@ -223,12 +227,14 @@ final class SecretiveFocusManager {
             return
         }
         guard isWatchedPid(pid) else { return }
-        if pidToBundleId[pid] == localAuthBundleId {
+        let isNativeAuth = (pidToBundleId[pid] == localAuthBundleId)
+        if isNativeAuth {
             lastNativeAuthSeenTime = CFAbsoluteTimeGetCurrent()
+        } else {
+            // Only trigger presentation once per newly-created/shown window ID for SecretAgent/Secretive
+            guard !handledWids.contains(wid) else { return }
+            handledWids.insert(wid)
         }
-        // Only trigger presentation once per newly-created/shown window ID
-        guard !handledWids.contains(wid) else { return }
-        handledWids.insert(wid)
         scheduleInitialPresentation(forPid: pid)
     }
 
@@ -242,10 +248,10 @@ final class SecretiveFocusManager {
         var pid: pid_t = 0
         AXUIElementGetPid(element, &pid)
         guard isWatchedPid(pid) else { return }
-        if pidToBundleId[pid] == localAuthBundleId {
+        let isNativeAuth = (pidToBundleId[pid] == localAuthBundleId)
+        if isNativeAuth {
             lastNativeAuthSeenTime = CFAbsoluteTimeGetCurrent()
-        }
-        if wid > 0 {
+        } else if wid > 0 {
             guard !handledWids.contains(wid) else { return }
             handledWids.insert(wid)
         }
@@ -266,7 +272,10 @@ final class SecretiveFocusManager {
 
     private func scheduleInitialPresentation(forPid pid: pid_t) {
         let targetDisplay = getActiveDisplayBounds()
-        for delay in [0.0, 0.06, 0.18] {
+        let isNativeAuth = (pidToBundleId[pid] == localAuthBundleId)
+        // coreautha (CampoLightweightUI / Apple Watch fallback) may materialize or resize its dialog up to ~3s after activation
+        let delays: [Double] = isNativeAuth ? [0.0, 0.06, 0.18, 0.4, 0.85, 1.6, 2.6, 3.4] : [0.0, 0.06, 0.18]
+        for delay in delays {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 guard let self = self else { return }
                 self.presentAppWindows(pid: pid, onDisplay: targetDisplay)
@@ -293,7 +302,7 @@ final class SecretiveFocusManager {
             var roleRef: CFTypeRef?
             if AXUIElementCopyAttributeValue(w, kAXRoleAttribute as CFString, &roleRef) == .success,
                let role = roleRef as? String {
-                return role == (kAXWindowRole as String)
+                return role == (kAXWindowRole as String) || role == "AXDialog" || role == "AXSystemDialog"
             }
             return true
         }
@@ -313,11 +322,12 @@ final class SecretiveFocusManager {
 
         let isNativeAuthApp = (bid == localAuthBundleId)
         let axApp = AXUIElementCreateApplication(pid)
+        var nativeAuthNeedsActivation = false
 
         for w in windows {
             var wid: CGWindowID = 0
             _ = _AXUIElementGetWindow(w, &wid)
-            if wid > 0 {
+            if wid > 0 && !isNativeAuthApp {
                 handledWids.insert(wid)
             }
 
@@ -334,12 +344,38 @@ final class SecretiveFocusManager {
                 AXValueGetValue(s as! AXValue, .cgSize, &size)
             }
 
+            if isNativeAuthApp && (size.width < 60 || size.height < 60) {
+                continue
+            }
+
             let effectiveW = size.width >= 50 ? size.width : 360.0
             let effectiveH = size.height >= 50 ? size.height : 240.0
             let winCenter = CGPoint(x: pos.x + effectiveW / 2.0, y: pos.y + effectiveH / 2.0)
             let isOnActiveDisplay = displayBounds.contains(winCenter)
 
-            if (isNativeAuthApp && !isOnActiveDisplay) || !isNativeAuthApp {
+            if isNativeAuthApp {
+                // If coreautha is already on the active display and frontmost, leave it completely untouched
+                // so password typing / Touch ID / Apple Watch interaction is never interrupted.
+                if isOnActiveDisplay && NSWorkspace.shared.frontmostApplication?.processIdentifier == pid {
+                    continue
+                }
+                if !isOnActiveDisplay {
+                    var targetPt = CGPoint(
+                        x: round(displayBounds.origin.x + (displayBounds.size.width - effectiveW) / 2.0),
+                        y: round(displayBounds.origin.y + (displayBounds.size.height - effectiveH) / 2.5)
+                    )
+                    if abs(pos.x - targetPt.x) > 2 || abs(pos.y - targetPt.y) > 2 {
+                        if let posVal = AXValueCreate(.cgPoint, &targetPt) {
+                            AXUIElementSetAttributeValue(w, kAXPositionAttribute as CFString, posVal)
+                        }
+                    }
+                }
+                // Never touch kAXFocusedAttribute on coreautha's AXWindow container so its internal password field keeps focus.
+                AXUIElementPerformAction(w, kAXRaiseAction as CFString)
+                if NSWorkspace.shared.frontmostApplication?.processIdentifier != pid {
+                    nativeAuthNeedsActivation = true
+                }
+            } else {
                 var targetPt = CGPoint(
                     x: round(displayBounds.origin.x + (displayBounds.size.width - effectiveW) / 2.0),
                     y: round(displayBounds.origin.y + (displayBounds.size.height - effectiveH) / 2.5)
@@ -349,13 +385,6 @@ final class SecretiveFocusManager {
                         AXUIElementSetAttributeValue(w, kAXPositionAttribute as CFString, posVal)
                     }
                 }
-            }
-
-            // For native macOS auth (coreautha), never touch kAXFocusedAttribute on the AXWindow container
-            // so its internal password AXSecureTextField retains keyboard focus.
-            if isNativeAuthApp {
-                AXUIElementPerformAction(w, kAXRaiseAction as CFString)
-            } else {
                 AXUIElementSetAttributeValue(w, kAXMainAttribute as CFString, kCFBooleanTrue)
                 AXUIElementSetAttributeValue(w, kAXFocusedAttribute as CFString, kCFBooleanTrue)
                 AXUIElementPerformAction(w, kAXRaiseAction as CFString)
@@ -366,7 +395,7 @@ final class SecretiveFocusManager {
             return
         }
 
-        if !isNativeAuthApp || NSWorkspace.shared.frontmostApplication?.processIdentifier != pid {
+        if !isNativeAuthApp || nativeAuthNeedsActivation {
             app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             AXUIElementSetAttributeValue(axApp, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
             for w in windows {

@@ -1,0 +1,35 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+# dot_aerospace.toml.tmpl: {{ include "dot_aerospace.toml.tmpl" | sha256sum }}
+# secretive_focus_helper.swift: {{ include "dot_config/aerospace/secretive_focus_helper.swift" | sha256sum }}
+# start_secretive_focus_helper.sh: {{ include "dot_config/aerospace/executable_start_secretive_focus_helper.sh" | sha256sum }}
+# com.cayco.chezmoi-sync.plist.tmpl: {{ include "private_Library/LaunchAgents/com.cayco.chezmoi-sync.plist.tmpl" | sha256sum }}
+set -euo pipefail
+
+export PATH="/opt/homebrew/bin:$HOME/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+# 1. Reload running AeroSpace config so [[on-window-detected]] & bindings take effect immediately
+if pgrep -x AeroSpace >/dev/null 2>&1 && command -v aerospace >/dev/null 2>&1; then
+    aerospace reload-config || true
+fi
+
+# 2. Recompile (if changed) and start/restart secretive_focus_helper immediately
+#    (AeroSpace after-startup-command does NOT re-run on reload-config)
+if [ -x "$HOME/.config/aerospace/start_secretive_focus_helper.sh" ]; then
+    "$HOME/.config/aerospace/start_secretive_focus_helper.sh" || true
+fi
+
+# 3. Ensure macOS chezmoi auto-sync LaunchAgent is loaded in GUI domain
+UID_NUM="$(id -u)"
+PLIST="$HOME/Library/LaunchAgents/com.cayco.chezmoi-sync.plist"
+if [ -f "$PLIST" ] && launchctl print "gui/$UID_NUM" >/dev/null 2>&1; then
+    if [ "${XPC_SERVICE_NAME:-}" = "com.cayco.chezmoi-sync" ]; then
+        if ! launchctl print "gui/$UID_NUM/com.cayco.chezmoi-sync" >/dev/null 2>&1; then
+            launchctl bootstrap "gui/$UID_NUM" "$PLIST" >/dev/null 2>&1 || true
+        fi
+    else
+        launchctl bootout "gui/$UID_NUM" "$PLIST" >/dev/null 2>&1 || true
+        launchctl bootstrap "gui/$UID_NUM" "$PLIST" >/dev/null 2>&1 || true
+    fi
+fi
+{{ end -}}
