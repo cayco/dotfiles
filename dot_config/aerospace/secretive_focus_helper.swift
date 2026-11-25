@@ -45,16 +45,30 @@ private let nativeAuthOwnerNames: Set<String> = [
     "UniversalAccessAuthWarn"
 ]
 
+private func logMsg(_ msg: String) {
+    let df = ISO8601DateFormatter()
+    df.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    let line = "[\(df.string(from: Date()))] \(msg)\n"
+    if let data = line.data(using: .utf8) {
+        FileHandle.standardOutput.write(data)
+    }
+}
+
 final class SecretiveFocusManager {
     static let shared = SecretiveFocusManager()
 
     private var pidToBundleId: [pid_t: String] = [:]
     private var observers: [pid_t: AXObserver] = [:]
-    private var handledWids: Set<UInt32> = []
+    private var presentedWids: Set<UInt32> = []
+    private var lastOccludedRaiseTime: [UInt32: CFAbsoluteTime] = [:]
+    private var deferredTargetDisplay: [pid_t: CGRect] = [:]
     private var lastActiveRegularPid: pid_t = 0
     private var lastNativeAuthSeenTime: CFAbsoluteTime = 0
+    private var watchTimer: Timer?
 
     func start() {
+        logMsg("started pid=\(ProcessInfo.processInfo.processIdentifier) axTrusted=\(AXIsProcessTrusted())")
+
         let ws = NSWorkspace.shared
         if let front = ws.frontmostApplication,
            let bid = front.bundleIdentifier,
@@ -95,6 +109,16 @@ final class SecretiveFocusManager {
 
         registerSkyLightNotifications()
         refreshExistingWindowsAtStartup()
+
+        // Lightweight watchdog (0.25s) ensures:
+        // 1. Deferred SecretAgent batch windows (which spawn right as coreautha is cancelled during
+        //    "Multiple pending requests exist, cancelling existing auth prompt") are IMMEDIATELY raised
+        //    the moment coreautha finishes closing.
+        // 2. Active SecretAgent batch prompt windows never stay hidden underneath full-screen/tiled apps
+        //    such as Antigravity while waiting for user action (unless native macOS auth is active).
+        watchTimer = Timer.scheduledTimer(withTimeInterval: 0.25, repeats: true) { [weak self] _ in
+            self?.pollSecretAgentVisibility()
+        }
     }
 
     private func syncRunningWatchedApps() {
@@ -149,6 +173,7 @@ final class SecretiveFocusManager {
 
     private func unregisterWatchedApp(pid: pid_t) {
         pidToBundleId.removeValue(forKey: pid)
+        deferredTargetDisplay.removeValue(forKey: pid)
         if let obs = observers.removeValue(forKey: pid) {
             CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(obs), .defaultMode)
         }
@@ -207,23 +232,48 @@ final class SecretiveFocusManager {
             }
         }
 
-        for app in NSRunningApplication.runningApplications(withBundleIdentifier: localAuthBundleId) where !app.isTerminated {
-            if !getStandardAXWindows(forPid: app.processIdentifier).isEmpty {
-                lastNativeAuthSeenTime = CFAbsoluteTimeGetCurrent()
-                return true
-            }
-        }
-
-        if (CFAbsoluteTimeGetCurrent() - lastNativeAuthSeenTime) < 0.45 {
+        if (CFAbsoluteTimeGetCurrent() - lastNativeAuthSeenTime) < 0.25 {
             return true
         }
 
         return false
     }
 
+    /// Checks whether a given window ID is physically occluded by any normal (layer 0) on-screen application window above it.
+    private func occludingNormalWindowOwner(wid: UInt32, winRect: CGRect, ownPid: pid_t) -> String? {
+        guard wid > 0,
+              let aboveList = CGWindowListCopyWindowInfo([.optionOnScreenAboveWindow, .excludeDesktopElements], wid) as? [[String: Any]] else {
+            return nil
+        }
+        for info in aboveList {
+            let ownerPid = pid_t(info[kCGWindowOwnerPID as String] as? Int ?? 0)
+            if ownerPid == ownPid { continue }
+            let layer = info[kCGWindowLayer as String] as? Int ?? 0
+            // Only care about normal app windows (layer == 0), never menus/popovers/borders/native auth overlays
+            if layer != 0 { continue }
+            let ownerName = info[kCGWindowOwnerName as String] as? String ?? ""
+            if nativeAuthOwnerNames.contains(ownerName) || ownerName == "borders" || ownerName == "JankyBorders" || ownerName == "Window Server" {
+                continue
+            }
+            let bounds = info[kCGWindowBounds as String] as? [String: Any] ?? [:]
+            let x = (bounds["X"] as? Double) ?? Double(bounds["X"] as? Int ?? 0)
+            let y = (bounds["Y"] as? Double) ?? Double(bounds["Y"] as? Int ?? 0)
+            let w = (bounds["Width"] as? Double) ?? Double(bounds["Width"] as? Int ?? 0)
+            let h = (bounds["Height"] as? Double) ?? Double(bounds["Height"] as? Int ?? 0)
+            if w < 60 || h < 60 { continue }
+            let otherRect = CGRect(x: x, y: y, width: w, height: h)
+            let inter = winRect.intersection(otherRect)
+            if !inter.isNull && (inter.width * inter.height) > 400 {
+                return ownerName.isEmpty ? "pid:\(ownerPid)" : ownerName
+            }
+        }
+        return nil
+    }
+
     func handleSkyLightSpawn(event: UInt32, wid: UInt32, pid: pid_t) {
         if event == 0x52e {
-            handledWids.remove(wid)
+            presentedWids.remove(wid)
+            lastOccludedRaiseTime.removeValue(forKey: wid)
             return
         }
         guard isWatchedPid(pid) else { return }
@@ -231,9 +281,7 @@ final class SecretiveFocusManager {
         if isNativeAuth {
             lastNativeAuthSeenTime = CFAbsoluteTimeGetCurrent()
         } else {
-            // Only trigger presentation once per newly-created/shown window ID for SecretAgent/Secretive
-            guard !handledWids.contains(wid) else { return }
-            handledWids.insert(wid)
+            guard !presentedWids.contains(wid) else { return }
         }
         scheduleInitialPresentation(forPid: pid)
     }
@@ -241,7 +289,8 @@ final class SecretiveFocusManager {
     func handleAXEvent(element: AXUIElement, wid: CGWindowID, notification: String) {
         if notification == kAXUIElementDestroyedNotification {
             if wid > 0 {
-                handledWids.remove(wid)
+                presentedWids.remove(wid)
+                lastOccludedRaiseTime.removeValue(forKey: wid)
             }
             return
         }
@@ -252,8 +301,7 @@ final class SecretiveFocusManager {
         if isNativeAuth {
             lastNativeAuthSeenTime = CFAbsoluteTimeGetCurrent()
         } else if wid > 0 {
-            guard !handledWids.contains(wid) else { return }
-            handledWids.insert(wid)
+            guard !presentedWids.contains(wid) else { return }
         }
         scheduleInitialPresentation(forPid: pid)
     }
@@ -274,11 +322,11 @@ final class SecretiveFocusManager {
         let targetDisplay = getActiveDisplayBounds()
         let isNativeAuth = (pidToBundleId[pid] == localAuthBundleId)
         // coreautha (CampoLightweightUI / Apple Watch fallback) may materialize or resize its dialog up to ~3s after activation
-        let delays: [Double] = isNativeAuth ? [0.0, 0.06, 0.18, 0.4, 0.85, 1.6, 2.6, 3.4] : [0.0, 0.06, 0.18]
+        let delays: [Double] = isNativeAuth ? [0.0, 0.06, 0.18, 0.4, 0.85, 1.6, 2.6, 3.4] : [0.0, 0.06, 0.18, 0.35]
         for delay in delays {
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                 guard let self = self else { return }
-                self.presentAppWindows(pid: pid, onDisplay: targetDisplay)
+                self.presentAppWindows(pid: pid, onDisplay: targetDisplay, reason: "scheduled")
             }
         }
     }
@@ -287,7 +335,76 @@ final class SecretiveFocusManager {
         syncRunningWatchedApps()
         let targetDisplay = getActiveDisplayBounds()
         for (pid, _) in pidToBundleId {
-            presentAppWindows(pid: pid, onDisplay: targetDisplay)
+            presentAppWindows(pid: pid, onDisplay: targetDisplay, reason: "startup")
+        }
+    }
+
+    private func pollSecretAgentVisibility() {
+        syncRunningWatchedApps()
+
+        // Never touch SecretAgent / Secretive while native macOS auth (coreautha / SecurityAgent) is open!
+        if isNativeAuthActive() {
+            return
+        }
+
+        // 1. Flush any deferred Secretive/SecretAgent presentations that were blocked while coreautha was closing
+        if !deferredTargetDisplay.isEmpty {
+            let pending = deferredTargetDisplay
+            deferredTargetDisplay.removeAll()
+            for (pid, display) in pending {
+                presentAppWindows(pid: pid, onDisplay: display, reason: "deferred_after_native_auth")
+            }
+        }
+
+        // 2. Guard active SecretAgent batch prompt windows against staying hidden behind normal app windows (e.g. Antigravity)
+        let now = CFAbsoluteTimeGetCurrent()
+        var liveSecretAgentWids: Set<UInt32> = []
+        for (pid, bid) in pidToBundleId where bid == secretAgentBundleId {
+            let windows = getStandardAXWindows(forPid: pid)
+            for w in windows {
+                var wid: CGWindowID = 0
+                _ = _AXUIElementGetWindow(w, &wid)
+                guard wid > 0 else { continue }
+
+                var pos = CGPoint.zero
+                var size = CGSize.zero
+                var posRef: CFTypeRef?
+                var sizeRef: CFTypeRef?
+                if AXUIElementCopyAttributeValue(w, kAXPositionAttribute as CFString, &posRef) == .success, let p = posRef {
+                    AXValueGetValue(p as! AXValue, .cgPoint, &pos)
+                }
+                if AXUIElementCopyAttributeValue(w, kAXSizeAttribute as CFString, &sizeRef) == .success, let s = sizeRef {
+                    AXValueGetValue(s as! AXValue, .cgSize, &size)
+                }
+                if size.width < 60 || size.height < 60 { continue }
+
+                liveSecretAgentWids.insert(wid)
+                let winRect = CGRect(origin: pos, size: size)
+
+                if !presentedWids.contains(wid) {
+                    let display = getActiveDisplayBounds()
+                    presentAppWindows(pid: pid, onDisplay: display, reason: "watchdog_new_batch_window")
+                    return
+                }
+
+                if let occluder = occludingNormalWindowOwner(wid: wid, winRect: winRect, ownPid: pid) {
+                    let lastRaise = lastOccludedRaiseTime[wid] ?? 0
+                    if (now - lastRaise) >= 0.8 {
+                        lastOccludedRaiseTime[wid] = now
+                        let display = getActiveDisplayBounds()
+                        presentAppWindows(pid: pid, onDisplay: display, reason: "occluded_by:\(occluder)")
+                        return
+                    }
+                }
+            }
+        }
+
+        // Prune closed SecretAgent window IDs so reused window IDs are always presented fresh
+        if liveSecretAgentWids.isEmpty && !lastOccludedRaiseTime.isEmpty {
+            for wid in Array(lastOccludedRaiseTime.keys) {
+                presentedWids.remove(wid)
+                lastOccludedRaiseTime.removeValue(forKey: wid)
+            }
         }
     }
 
@@ -308,11 +425,18 @@ final class SecretiveFocusManager {
         }
     }
 
-    private func presentAppWindows(pid: pid_t, onDisplay displayBounds: CGRect) {
+    private func presentAppWindows(pid: pid_t, onDisplay displayBounds: CGRect, reason: String) {
         let bid = pidToBundleId[pid] ?? NSRunningApplication(processIdentifier: pid)?.bundleIdentifier ?? ""
+        let isNativeAuthApp = (bid == localAuthBundleId)
 
         // CRITICAL EXCEPTION: Never allow SecretAgent or Secretive to raise or steal focus while native macOS auth (coreautha / SecurityAgent) is open!
-        if bid != localAuthBundleId && isNativeAuthActive() {
+        // Instead of dropping the presentation permanently (which broke batch prompts spawned right as coreautha is cancelled),
+        // record it as deferred so pollSecretAgentVisibility() raises it immediately once coreautha closes.
+        if !isNativeAuthApp && isNativeAuthActive() {
+            if deferredTargetDisplay[pid] == nil {
+                logMsg("defer pid=\(pid) bid=\(bid) reason=\(reason) (native auth active)")
+            }
+            deferredTargetDisplay[pid] = displayBounds
             return
         }
 
@@ -320,16 +444,13 @@ final class SecretiveFocusManager {
         guard !windows.isEmpty else { return }
         guard let app = NSRunningApplication(processIdentifier: pid), !app.isTerminated else { return }
 
-        let isNativeAuthApp = (bid == localAuthBundleId)
         let axApp = AXUIElementCreateApplication(pid)
         var nativeAuthNeedsActivation = false
+        var presentedAnySecretiveWindow = false
 
         for w in windows {
             var wid: CGWindowID = 0
             _ = _AXUIElementGetWindow(w, &wid)
-            if wid > 0 && !isNativeAuthApp {
-                handledWids.insert(wid)
-            }
 
             var pos = CGPoint.zero
             var size = CGSize.zero
@@ -344,12 +465,12 @@ final class SecretiveFocusManager {
                 AXValueGetValue(s as! AXValue, .cgSize, &size)
             }
 
-            if isNativeAuthApp && (size.width < 60 || size.height < 60) {
+            if size.width < 60 || size.height < 60 {
                 continue
             }
 
-            let effectiveW = size.width >= 50 ? size.width : 360.0
-            let effectiveH = size.height >= 50 ? size.height : 240.0
+            let effectiveW = size.width
+            let effectiveH = size.height
             let winCenter = CGPoint(x: pos.x + effectiveW / 2.0, y: pos.y + effectiveH / 2.0)
             let isOnActiveDisplay = displayBounds.contains(winCenter)
 
@@ -367,6 +488,7 @@ final class SecretiveFocusManager {
                     if abs(pos.x - targetPt.x) > 2 || abs(pos.y - targetPt.y) > 2 {
                         if let posVal = AXValueCreate(.cgPoint, &targetPt) {
                             AXUIElementSetAttributeValue(w, kAXPositionAttribute as CFString, posVal)
+                            logMsg("move coreautha wid=\(wid) to=\(targetPt) reason=\(reason)")
                         }
                     }
                 }
@@ -388,15 +510,25 @@ final class SecretiveFocusManager {
                 AXUIElementSetAttributeValue(w, kAXMainAttribute as CFString, kCFBooleanTrue)
                 AXUIElementSetAttributeValue(w, kAXFocusedAttribute as CFString, kCFBooleanTrue)
                 AXUIElementPerformAction(w, kAXRaiseAction as CFString)
+                if wid > 0 {
+                    presentedWids.insert(wid)
+                    lastOccludedRaiseTime[wid] = CFAbsoluteTimeGetCurrent()
+                }
+                presentedAnySecretiveWindow = true
+                logMsg("present bid=\(bid) wid=\(wid) size=\(Int(effectiveW))x\(Int(effectiveH)) onDisplay=\(displayBounds) reason=\(reason)")
             }
         }
 
-        if !isNativeAuthApp && isNativeAuthActive() {
-            return
+        if !isNativeAuthApp {
+            guard presentedAnySecretiveWindow else { return }
+            if isNativeAuthActive() {
+                deferredTargetDisplay[pid] = displayBounds
+                return
+            }
         }
 
-        if !isNativeAuthApp || nativeAuthNeedsActivation {
-            app.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+        if presentedAnySecretiveWindow || nativeAuthNeedsActivation {
+            app.activate(options: [.activateAllWindows])
             AXUIElementSetAttributeValue(axApp, kAXFrontmostAttribute as CFString, kCFBooleanTrue)
             for w in windows {
                 AXUIElementPerformAction(w, kAXRaiseAction as CFString)
@@ -424,8 +556,7 @@ final class SecretiveFocusManager {
             candidatePid = lastActiveRegularPid
         }
 
-        if frontApp == nil || (!(watchedBundleIds.contains(frontApp?.bundleIdentifier ?? "")) && !(nativeAuthBundleIds.contains(frontApp?.bundleIdentifier ?? ""))),
-           candidatePid > 0 {
+        if candidatePid > 0 {
             let axApp = AXUIElementCreateApplication(candidatePid)
             var focusedWinRef: CFTypeRef?
             if AXUIElementCopyAttributeValue(axApp, kAXFocusedWindowAttribute as CFString, &focusedWinRef) == .success,

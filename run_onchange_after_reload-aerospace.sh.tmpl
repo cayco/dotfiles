@@ -8,14 +8,13 @@ set -euo pipefail
 
 export PATH="/opt/homebrew/bin:$HOME/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-# 1. Reload running AeroSpace config so [[on-window-detected]] & bindings take effect immediately
+# 1. Reload running AeroSpace config AND spawn secretive_focus_helper from INSIDE AeroSpace.app
+#    (via service-mode esc binding) so the helper always inherits AeroSpace's macOS Accessibility (TCC) grant
+#    even when chezmoi apply is triggered in the background by launchd (com.cayco.chezmoi-sync).
 if pgrep -x AeroSpace >/dev/null 2>&1 && command -v aerospace >/dev/null 2>&1; then
     aerospace reload-config || true
-fi
-
-# 2. Recompile (if changed) and start/restart secretive_focus_helper immediately
-#    (AeroSpace after-startup-command does NOT re-run on reload-config)
-if [ -x "$HOME/.config/aerospace/start_secretive_focus_helper.sh" ]; then
+    aerospace trigger-binding --mode service esc || true
+elif [ -x "$HOME/.config/aerospace/start_secretive_focus_helper.sh" ]; then
     "$HOME/.config/aerospace/start_secretive_focus_helper.sh" || true
 fi
 
