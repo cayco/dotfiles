@@ -5,4 +5,5 @@ Library/LaunchAgents/com.cayco.cmk-agy-handoff.plist
 {{ if ne .chezmoi.os "darwin" -}}
 Library/LaunchAgents/com.cayco.chezmoi-sync.plist
 .config/chezmoi/chezmoi_auto_sync.sh
+.local/bin/cayco-ssh-unlock
 {{ end -}}

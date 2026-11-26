@@ -259,6 +259,19 @@ sketchybar -m --add item vpn right \
                         update_freq=5 \
                         script="~/.config/sketchybar/plugins/vpn.sh"
 
+sketchybar -m --add event secretive_update \
+              --add item secretive right \
+              --set secretive icon= \
+                              icon.color=0xffEBCB8B \
+                              background.color=0xff3B4252 \
+                              background.height=30 \
+                              padding_left=5 \
+                              padding_right=5 \
+                              update_freq=5 \
+                              script="$HOME/.config/sketchybar/plugins/secretive.sh" \
+                              click_script="$HOME/.config/sketchybar/plugins/secretive_click.sh" \
+              --subscribe secretive secretive_update
+
 ############## BRACKETS ##############
  sketchybar -m --add bracket primary_spaces productivity \
                                             browser \

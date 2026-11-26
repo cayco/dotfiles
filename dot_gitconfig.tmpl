@@ -1,0 +1,10 @@
+[user]
+	email = cayco@cayco.pl
+	name = Krzysztof Kajkowski
+[pull]
+	rebase = true
+{{- if eq .chezmoi.hostname "Mac-Studio-187" }}
+[url "https://github.com/"]
+	insteadOf = git@github.com:
+	insteadOf = ssh://git@github.com/
+{{- end }}

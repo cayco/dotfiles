@@ -1,0 +1,56 @@
+#!/bin/bash
+set -euo pipefail
+
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+SOCK="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
+MODE="${1:---unlock}"
+
+refresh_bar() {
+  if pgrep -x sketchybar >/dev/null 2>&1; then
+    sketchybar -m --trigger secretive_update >/dev/null 2>&1 || true
+  fi
+}
+
+case "$MODE" in
+  --lock|lock)
+    pkill -u "$(id -u)" -f 'ssh: .*/\.ssh/cm/.* \[mux\]' 2>/dev/null || true
+    rm -f "$HOME/.ssh/cm/"* 2>/dev/null || true
+    refresh_bar
+    echo "Closed all active SSH ControlMaster sessions."
+    ;;
+  --status|status)
+    if [ -S "$SOCK" ] && pgrep -u "$(id -u)" -f "Secretive.SecretAgent" >/dev/null 2>&1; then
+      echo "SecretAgent: RUNNING ($SOCK)"
+    else
+      echo "SecretAgent: STOPPED"
+    fi
+    MUX_PIDS="$(pgrep -u "$(id -u)" -f 'ssh: .*/\.ssh/cm/.* \[mux\]' 2>/dev/null || true)"
+    if [ -z "$MUX_PIDS" ]; then
+      echo "Active 24h SSH tunnels: 0"
+    else
+      echo "Active 24h SSH tunnels:"
+      for p in $MUX_PIDS; do
+        lsof -nP -a -p "$p" -iTCP -sTCP:ESTABLISHED 2>/dev/null | awk 'NR>1 {print "  PID " $2 " -> " $9}'
+      done
+    fi
+    ;;
+  --unlock|unlock|"")
+    if [ ! -S "$SOCK" ] || ! pgrep -u "$(id -u)" -f "Secretive.SecretAgent" >/dev/null 2>&1; then
+      open -g -a Secretive || true
+      for _ in 1 2 3 4 5 6; do
+        [ -S "$SOCK" ] && break
+        sleep 0.5
+      done
+    fi
+    if ! /usr/bin/ssh -O check prox >/dev/null 2>&1; then
+      /usr/bin/ssh -o ConnectTimeout=8 prox true
+    fi
+    refresh_bar
+    echo "SSH 24h ControlMaster session active (prox)."
+    ;;
+  *)
+    echo "Usage: cayco-ssh-unlock [--unlock | --lock | --status]" >&2
+    exit 1
+    ;;
+esac

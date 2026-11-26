@@ -4,6 +4,9 @@
 # secretive_focus_helper.swift: {{ include "dot_config/aerospace/secretive_focus_helper.swift" | sha256sum }}
 # start_secretive_focus_helper.sh: {{ include "dot_config/aerospace/executable_start_secretive_focus_helper.sh" | sha256sum }}
 # com.cayco.chezmoi-sync.plist.tmpl: {{ include "private_Library/LaunchAgents/com.cayco.chezmoi-sync.plist.tmpl" | sha256sum }}
+# sketchybarrc: {{ include "dot_config/sketchybar/executable_sketchybarrc" | sha256sum }}
+# secretive.sh: {{ include "dot_config/sketchybar/plugins/executable_secretive.sh" | sha256sum }}
+# secretive_click.sh: {{ include "dot_config/sketchybar/plugins/executable_secretive_click.sh" | sha256sum }}
 set -euo pipefail
 
 export PATH="/opt/homebrew/bin:$HOME/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -16,6 +19,11 @@ if pgrep -x AeroSpace >/dev/null 2>&1 && command -v aerospace >/dev/null 2>&1; t
     aerospace trigger-binding --mode service esc || true
 elif [ -x "$HOME/.config/aerospace/start_secretive_focus_helper.sh" ]; then
     "$HOME/.config/aerospace/start_secretive_focus_helper.sh" || true
+fi
+
+# 2. Reload SketchyBar if running so top-bar widgets update immediately
+if pgrep -x sketchybar >/dev/null 2>&1 && command -v sketchybar >/dev/null 2>&1; then
+    sketchybar --reload || true
 fi
 
 # 3. Ensure macOS chezmoi auto-sync LaunchAgent is loaded in GUI domain
