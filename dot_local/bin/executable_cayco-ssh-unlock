@@ -3,9 +3,7 @@ set -euo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 
-SECRETIVE_SOCK="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
-DAILY_SOCK="$HOME/.ssh/cayco/daily-agent.sock"
-STATE_FILE="$HOME/.ssh/cayco/.daily_unlock_state"
+SOCK="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
 MODE="${1:---unlock}"
 
 refresh_bar() {
@@ -16,59 +14,40 @@ refresh_bar() {
 
 case "$MODE" in
   --lock|lock)
-    rm -f "$STATE_FILE" 2>/dev/null || true
     pkill -u "$(id -u)" -f 'ssh: .*/\.ssh/cm/.* \[mux\]' 2>/dev/null || true
     rm -f "$HOME/.ssh/cm/"* 2>/dev/null || true
     refresh_bar
-    echo "Locked 24h SSH gate and closed all active SSH ControlMaster sessions."
+    echo "Closed all active SSH ControlMaster sessions."
     ;;
   --status|status)
-    if [ -S "$SECRETIVE_SOCK" ] && pgrep -u "$(id -u)" -f "Secretive.SecretAgent" >/dev/null 2>&1; then
-      echo "SecretAgent: RUNNING ($SECRETIVE_SOCK)"
+    if [ -S "$SOCK" ] && pgrep -u "$(id -u)" -f "Secretive.SecretAgent" >/dev/null 2>&1; then
+      echo "SecretAgent: RUNNING ($SOCK)"
     else
       echo "SecretAgent: STOPPED"
     fi
-    if [ -S "$DAILY_SOCK" ] && pgrep -u "$(id -u)" -f "CaycoDailySSH" >/dev/null 2>&1; then
-      echo "DailySSHGate: RUNNING ($DAILY_SOCK)"
-    elif [ -f "$HOME/Library/LaunchAgents/com.cayco.daily-ssh-agent.plist" ]; then
-      echo "DailySSHGate: STOPPED"
-    fi
-    if [ -f "$STATE_FILE" ]; then
-      python3 - "$STATE_FILE" <<'PY'
-import json, subprocess, sys, time
-st = json.load(open(sys.argv[1]))
-out = subprocess.check_output(["/usr/sbin/sysctl", "-n", "kern.boottime"], text=True)
-boot_sec = int(out.split("sec =")[1].split(",")[0].strip())
-rem = int(st.get("unlocked_until", 0) - time.time())
-if st.get("boot_sec") == boot_sec and rem > 0:
-    print(f"24h Global SSH Unlock: UNLOCKED ({rem // 3600}h {(rem % 3600) // 60}m remaining)")
-else:
-    print("24h Global SSH Unlock: LOCKED (expired)")
-PY
-    else
-      echo "24h Global SSH Unlock: LOCKED"
-    fi
     MUX_PIDS="$(pgrep -u "$(id -u)" -f 'ssh: .*/\.ssh/cm/.* \[mux\]' 2>/dev/null || true)"
     if [ -z "$MUX_PIDS" ]; then
-      echo "Active SSH mux tunnels: 0"
+      echo "Active 24h SSH tunnels: 0"
     else
-      echo "Active SSH mux tunnels:"
+      echo "Active 24h SSH tunnels:"
       for p in $MUX_PIDS; do
         lsof -nP -a -p "$p" -iTCP -sTCP:ESTABLISHED 2>/dev/null | awk 'NR>1 {print "  PID " $2 " -> " $9}'
       done
     fi
     ;;
   --unlock|unlock|"")
-    if [ ! -S "$SECRETIVE_SOCK" ] || ! pgrep -u "$(id -u)" -f "Secretive.SecretAgent" >/dev/null 2>&1; then
+    if [ ! -S "$SOCK" ] || ! pgrep -u "$(id -u)" -f "Secretive.SecretAgent" >/dev/null 2>&1; then
       open -g -a Secretive || true
       for _ in 1 2 3 4 5 6; do
-        [ -S "$SECRETIVE_SOCK" ] && break
+        [ -S "$SOCK" ] && break
         sleep 0.5
       done
     fi
-    /usr/bin/ssh -o ConnectTimeout=8 prox true || /usr/bin/ssh -o ConnectTimeout=8 loxone-llm true
+    if ! /usr/bin/ssh -O check prox >/dev/null 2>&1; then
+      /usr/bin/ssh -o ConnectTimeout=8 prox true
+    fi
     refresh_bar
-    echo "Global 24h SSH gate unlocked."
+    echo "SSH 24h ControlMaster session active (prox)."
     ;;
   *)
     echo "Usage: cayco-ssh-unlock [--unlock | --lock | --status]" >&2

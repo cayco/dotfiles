@@ -7,11 +7,6 @@
 # sketchybarrc: {{ include "dot_config/sketchybar/executable_sketchybarrc" | sha256sum }}
 # secretive.sh: {{ include "dot_config/sketchybar/plugins/executable_secretive.sh" | sha256sum }}
 # secretive_click.sh: {{ include "dot_config/sketchybar/plugins/executable_secretive_click.sh" | sha256sum }}
-{{- if eq .chezmoi.hostname "Mac-Studio-187" }}
-# cayco_daily_ssh_agent.swift: {{ include "dot_config/cayco-ssh/cayco_daily_ssh_agent.swift" | sha256sum }}
-# run_daily_ssh_agent.sh: {{ include "dot_config/cayco-ssh/executable_run_daily_ssh_agent.sh" | sha256sum }}
-# com.cayco.daily-ssh-agent.plist.tmpl: {{ include "private_Library/LaunchAgents/com.cayco.daily-ssh-agent.plist.tmpl" | sha256sum }}
-{{- end }}
 set -euo pipefail
 
 export PATH="/opt/homebrew/bin:$HOME/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
@@ -43,12 +38,5 @@ if [ -f "$PLIST" ] && launchctl print "gui/$UID_NUM" >/dev/null 2>&1; then
         launchctl bootout "gui/$UID_NUM" "$PLIST" >/dev/null 2>&1 || true
         launchctl bootstrap "gui/$UID_NUM" "$PLIST" >/dev/null 2>&1 || true
     fi
-fi
-
-# 4. Ensure Mac Studio 24h SSH Agent Gate LaunchAgent is loaded and up-to-date
-DAILY_PLIST="$HOME/Library/LaunchAgents/com.cayco.daily-ssh-agent.plist"
-if [ -f "$DAILY_PLIST" ] && launchctl print "gui/$UID_NUM" >/dev/null 2>&1; then
-    launchctl bootout "gui/$UID_NUM" "$DAILY_PLIST" >/dev/null 2>&1 || true
-    launchctl bootstrap "gui/$UID_NUM" "$DAILY_PLIST" >/dev/null 2>&1 || true
 fi
 {{ end -}}
