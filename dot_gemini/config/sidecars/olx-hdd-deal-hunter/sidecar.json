@@ -16,8 +16,8 @@
       "command(node)",
       "command(curl)",
       "read_file(/Users/krzysztofkajkowski/.gemini/config/skills/chrome-shopping)",
-      "read_file(/Users/krzysztofkajkowski/.gemini/antigravity/olx-hdd-deals-seen.json)",
-      "write_file(/Users/krzysztofkajkowski/.gemini/antigravity/olx-hdd-deals-seen.json)"
+      "read_file(/Users/krzysztofkajkowski/.gemini/antigravity)",
+      "write_file(/Users/krzysztofkajkowski/.gemini/antigravity)"
     ]
   }
 }

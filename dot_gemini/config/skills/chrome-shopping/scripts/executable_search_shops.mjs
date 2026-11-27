@@ -154,8 +154,8 @@ const LISTING_EXTRACTORS = {
   },
   olx: function() {
     return Array.from(document.querySelectorAll("[data-cy='l-card'], [data-testid='l-card']")).map(c => {
-      const titleEl = c.querySelector("[data-testid='ad-card-title'], h6, h4");
-      const title = titleEl ? titleEl.innerText.trim() : "";
+      const titleEl = c.querySelector("h4, h6, [data-testid='ad-card-title']");
+      const title = titleEl ? titleEl.innerText.split("\n")[0].trim() : "";
       const priceEl = c.querySelector("[data-testid='ad-price']");
       const price = priceEl ? priceEl.innerText.replace(/\s+/g, " ").trim() : "";
       const locEl = c.querySelector("[data-testid='location-date']");
